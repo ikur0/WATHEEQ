@@ -6,3 +6,15 @@ faiss-cpu
 pypdf
 sentence-transformers
 streamlit
+
+
+
+
+django
+djangorestframework
+markdown
+django-filter
+django-cors-headers
+
+
+djangorestframework-simplejwt
