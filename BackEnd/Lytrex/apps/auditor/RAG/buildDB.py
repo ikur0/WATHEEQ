@@ -12,32 +12,50 @@ def get_embeddings_model():
     return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
 
-def initialize_standards_db():
+def initialize_standards_db(file_paths, db_name="DB"):
     """
-    Loads 'file.pdf' (National Standards) into the Vector Store ONCE.
-    This database represents the 'Ground Truth' rules.
+    Loads a list of PDF paths into the Vector Store ONCE.
+    This database represents the unified 'Ground Truth' rules.
     """
-    file_path = "frameworks/file.pdf"
-    
-    if not os.path.exists(file_path):
-        print(f"❌ Critical Error: '{file_path}' not found in directory. Please add the Standards PDF.")
+    all_documents = []
+
+    # 1. Loop through all paths and load them
+    for path in file_paths:
+        if not os.path.exists(path):
+            print(f"❌ Warning: '{path}' not found in directory. Skipping.")
+            continue
+
+        print(f"Loading {path}...")
+        loader = PyPDFLoader(path)
+        documents = loader.load()
+        all_documents.extend(documents)  # Add the pages to our master list
+
+    if not all_documents:
+        print("❌ Critical Error: No documents were loaded. Exiting.")
         return None
 
-    # Load the PDF
-    loader = PyPDFLoader(file_path)
-    documents = loader.load()
-    
-    # Split text (Keeping chunks small-ish to find specific rules)
+    # 2. Split all text at once
+    print("Splitting text into chunks...")
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-    texts = text_splitter.split_documents(documents)
-    
-    # Embed and Store
+    texts = text_splitter.split_documents(all_documents)
+
+    # 3. Embed and Store everything into a single FAISS index
+    print("Generating embeddings and building FAISS index...")
     embeddings = get_embeddings_model()
     vectorstore = FAISS.from_documents(texts, embeddings)
-    vectorstore.save_local("DB")
+
+    # Save the unified database
+    vectorstore.save_local(db_name)
+    print(f"✅ Database successfully created and saved to '{db_name}' directory.")
     return vectorstore
 
 
+# --- Execution ---
 print("Start process")
-initialize_standards_db()
-print("Supposed to be stored successfully")
+framework_paths = [
+    'frameworks/ECC--2024-EN.pdf',
+    'frameworks/SAMA_EN_5888_VER1.pdf'
+]
+
+# Call the function ONCE with the list of paths
+initialize_standards_db(framework_paths)
