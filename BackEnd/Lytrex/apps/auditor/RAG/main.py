@@ -1,156 +1,168 @@
-import streamlit as st
 import os
-import tempfile
-from langchain_groq import ChatGroq
+import glob
+from typing import List, Optional, Dict, Any
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
-from pypdf import PdfReader
-from groq import Groq
-# ----------------------------------------------------------------
-# CONFIGURATION
-# ----------------------------------------------------------------
-# Replace with your actual key
-api_key = os.getenv("GROQ_API_KEY")
-client = Groq(api_key=api_key)
-# Page Config
-st.set_page_config(page_title="Smart Compliance", layout="wide")
-st.title("🛡️ Smart Compliance Auditor")
+from langchain_groq import ChatGroq
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
 
-# ----------------------------------------------------------------
-# 1. SETUP RESOURCES
-# ----------------------------------------------------------------
-
-@st.cache_resource
-def get_embeddings_model():
-    return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-
-@st.cache_resource
-def get_llm():
-    return ChatGroq(
-        temperature=0.0, # Zero temp for strict auditing
-        model_name="llama-3.1-8b-instant"
-    )
-
-@st.cache_resource
-def initialize_standards_db():
-    DB_FOLDER_PATH = "DB"
-    
-    if not os.path.exists(DB_FOLDER_PATH):
-        st.error(f"❌ The folder '{DB_FOLDER_PATH}' was not found. Please run the setup script first.")
-        return None
-
-    try:
-        embeddings = get_embeddings_model()
-        # allow_dangerous_deserialization is required for local pickle files
-        vectorstore = FAISS.load_local(
-            DB_FOLDER_PATH, 
-            embeddings, 
-            allow_dangerous_deserialization=True
-        )
-        return vectorstore
-    except Exception as e:
-        st.error(f"❌ Error loading Standards DB: {e}")
-        return None
-
-# Load the Standards DB immediately
-if "standards_db" not in st.session_state:
-    with st.spinner(""):
-        st.session_state.standards_db = initialize_standards_db()
-
-# ----------------------------------------------------------------
-# 2. REPORT GENERATION LOGIC
-# ----------------------------------------------------------------
-def generate_compliance_report(policy_text, is_full_report):
-    llm = get_llm()
-    vectorstore = st.session_state.standards_db
-    
-    # -------------------------------------------------------
-    # DYNAMIC RETRIEVAL LOGIC
-    # -------------------------------------------------------
-    # We use the USER'S POLICY TEXT as the query. 
-    # This automatically finds the specific standards relevant to what the user wrote.
-    # We fetch top 10 relevant chunks to ensure we catch all rules.
-    docs = vectorstore.similarity_search(policy_text, k=10)
-    
-    # This is the "Ground Truth" context specific to the user's topic
-    standards_context = "\n\n".join([doc.page_content for doc in docs])
-    
-    # -------------------------------------------------------
-    # PROMPT ENGINEERING
-    # -------------------------------------------------------
-    if is_full_report:
-        instructions = "Provide a detailed Gap Analysis, specific ISO/NIST mapping (if applicable), and specific recommendations."
-    else:
-        instructions = "Provide a Brief Summary of strengths and one major area for improvement."
-
-    prompt = f"""
-    You are a Strict Compliance Auditor. Your ONLY job is to compare the "User's Policy" against the "National Standards" provided in the CONTEXT.
-
-    CONTEXT (National Standards - The Rules):
-    {standards_context}
-
-    USER INPUT (Company Policy - The Target):
-    {policy_text}
-
-    INSTRUCTIONS:
-    1. IGNORE your general knowledge. Use ONLY the standards in the CONTEXT.
-    2. For every algorithm mentioned in the User Input, check the CONTEXT for:
-       - Allowed Key Lengths?
-       - Allowed Zones (Moderate vs Advanced)?
-    3. If the Policy mentions a justification (e.g., "for speed"), IGNORE IT. If the math does not match the standard, it is a VIOLATION.
-    4. RSA must be 3072 bits minimum (if mentioned in Context).
-    5. SOSEMANUK is NOT allowed for Advanced (if mentioned in Context).
-    
-    OUTPUT FORMAT:
-    Create a Markdown Table with columns: [Policy Statement, Verdict, Reason].
-    Then provide the {instructions}.
+class ComplianceRAG:
     """
-
-    # Call LLM
-    with st.spinner("🔍 Comparing User Policy against Framework..."):
-        response = llm.invoke(prompt)
-        return response.content
-
-# ----------------------------------------------------------------
-# 3. STREAMLIT UI
-# ----------------------------------------------------------------
-
-
-# Sidebar
-with st.sidebar:
-    st.header("⚙️ Audit Settings")
-    st.write("Upload the **Company Policy** you want to check.")
-    # This upload is the "Target"
-    uploaded_file = st.file_uploader("Upload Policy (PDF)", type=["pdf"])
+    A production-ready RAG class for Compliance Checking.
+    Automatically handles PDF ingestion from a source folder and queries a persistent Vector DB.
+    """
     
-    st.markdown("---")
-    full_report_mode = st.toggle("Generate Detailed Report", value=True)
-
-# Main Area
-if uploaded_file:
-    # Extract text from the uploaded PDF immediately
-    # We do NOT vectorise this file. We just read it as a string to query the Standards DB.
-    try:
-        reader = PdfReader(uploaded_file)
-        policy_text = ""
-        for page in reader.pages:
-            policy_text += page.extract_text() or ""
-            
-        st.info(f"📄 Policy '{uploaded_file.name}' extracted successfully. ({len(policy_text)} characters)")
+    def __init__(self, 
+                 pdf_source_dir: str = "frameworks", 
+                 vector_db_path: str = "yousefDB", 
+                 embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2",
+                 groq_api_key: Optional[str] = "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",
+                 # 👇 UPDATE THIS LINE 👇
+                 model_name: str = "llama-3.3-70b-versatile", 
+                 chunk_size: int = 1000,
+                 chunk_overlap: int = 200):
         
-        # Action Button
-        if st.button("📊 Run Compliance Check", type="primary"):
-            if st.session_state.standards_db is None:
-                st.error("Standards DB not loaded. Check file.pdf.")
-            else:
-                report = generate_compliance_report(policy_text, full_report_mode)
-                st.markdown("### 📑 Audit Results")
-                st.markdown(report)
+        # --- Configuration ---
+        self.pdf_source_dir = pdf_source_dir
+        self.vector_db_path = vector_db_path
+        self.chunk_size = chunk_size
+        self.chunk_overlap = chunk_overlap
+        
+        # --- 1. Initialize Embeddings ---
+        self.embeddings = HuggingFaceEmbeddings(model_name=embedding_model)
+        
+        # --- 2. Initialize Vector Store ---
+        # We try to load it immediately. If it doesn't exist, self.vectorstore will be None.
+        self.vectorstore = self._load_vectorstore()
+        
+        # --- 3. Initialize LLM ---
+        api_key = groq_api_key or os.getenv("GROQ_API_KEY")
+        if not api_key:
+            # You can set a default here if you want to hardcode it, though not recommended for security
+            api_key = "gsk_..." 
+            if not api_key or api_key == "gsk_...":
+                 raise ValueError("GROQ_API_KEY is missing. Please set it in env or pass it to __init__.")
+            
+        self.llm = ChatGroq(
+            temperature=0,  # Strict compliance checking
+            groq_api_key=api_key,
+            model_name=model_name
+        )
+        
+        # --- 4. Define the Compliance Prompt ---
+        self.prompt_template = ChatPromptTemplate.from_template(
+            """
+            You are a strict Compliance Auditor AI. 
+            Your goal is to answer the user's question or audit their input based ONLY on the provided context (Standards/Regulations).
+            
+            <context>
+            {context}
+            </context>
 
-    except Exception as e:
-        st.error(f"Error reading PDF: {e}")
+            User Question/Input: {question}
 
-else:
-    st.info("👋 Upload a company policy PDF to audit it against the `file.pdf` standards.")
+            Instructions:
+            1. Analyze the Context strictly.
+            2. If the user asks for a requirement, quote the specific article or section number if available.
+            3. If the answer is not in the context, state "The provided standards do not cover this specific topic."
+            4. Do not hallucinate or use outside knowledge.
+            
+            Output format:
+            - **Answer**: [Your direct answer]
+            - **Reference**: [Relevant sections/articles found in context]
+            """
+        )
+
+    def _load_vectorstore(self):
+        """Internal method to load existing DB if available."""
+        if os.path.exists(self.vector_db_path):
+            print(f"✅ Loading existing vector store from '{self.vector_db_path}'...")
+            return FAISS.load_local(
+                self.vector_db_path, 
+                self.embeddings, 
+                allow_dangerous_deserialization=True 
+            )
+        print(f"ℹ️ No database found at '{self.vector_db_path}'. You should run ingest_standards() next.")
+        return None
+
+    def ingest_standards(self):
+        """
+        Scans the 'pdf_source_dir' (default: frameworks) for PDFs, 
+        ingests them, and saves the DB to 'vector_db_path' (default: yousefDB).
+        """
+        # 1. Auto-discover PDFs
+        pdf_paths = glob.glob(os.path.join(self.pdf_source_dir, "*.pdf"))
+        
+        if not pdf_paths:
+            print(f"⚠️ No PDF files found in directory: '{self.pdf_source_dir}'")
+            return
+
+        print(f"🔎 Found {len(pdf_paths)} PDF(s) in '{self.pdf_source_dir}'. Starting ingestion...")
+
+        all_documents = []
+        for path in pdf_paths:
+            print(f"📄 Loading {path}...")
+            loader = PyPDFLoader(path)
+            all_documents.extend(loader.load())
+
+        if not all_documents:
+            print("❌ Documents loaded but text was empty.")
+            return
+
+        # 2. Split Text
+        print(f"✂️ Splitting text (Size: {self.chunk_size}, Overlap: {self.chunk_overlap})...")
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=self.chunk_size, 
+            chunk_overlap=self.chunk_overlap
+        )
+        chunks = text_splitter.split_documents(all_documents)
+        
+        # 3. Create/Update Vector Store
+        print("🔄 Generating embeddings (this may take a moment)...")
+        if self.vectorstore:
+            self.vectorstore.add_documents(chunks)
+        else:
+            self.vectorstore = FAISS.from_documents(chunks, self.embeddings)
+            
+        # 4. Save to Disk
+        self.vectorstore.save_local(self.vector_db_path)
+        print(f"✅ Database successfully saved to '{self.vector_db_path}'")
+
+    def check_compliance(self, query: str, k: int = 4) -> Dict[str, Any]:
+        """
+        End-to-End function:
+        1. Checks if DB is ready.
+        2. Retrieves relevant rules.
+        3. Sends to LLM for audit.
+        """
+        if not self.vectorstore:
+            # Try to load again just in case it was just ingested
+            self.vectorstore = self._load_vectorstore()
+            if not self.vectorstore:
+                return {"response": "❌ Error: Database not found. Please run ingest_standards() first."}
+
+        # 1. Retrieve
+        print(f"🔍 Searching compliance rules for: '{query}'...")
+        retriever = self.vectorstore.as_retriever(search_kwargs={"k": k})
+        retrieved_docs = retriever.invoke(query)
+        
+        if not retrieved_docs:
+            return {"response": "⚠️ No relevant standards found in the database."}
+
+        formatted_context = "\n\n".join(doc.page_content for doc in retrieved_docs)
+        
+        # 2. Generate Answer
+        print("🤖 Analyzing with LLM...")
+        chain = self.prompt_template | self.llm | StrOutputParser()
+        response = chain.invoke({"context": formatted_context, "question": query})
+        
+        return {
+            "response": response,
+            "source_documents": [doc.metadata for doc in retrieved_docs]
+        }
+
+# --- usage ---
+
