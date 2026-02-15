@@ -19,7 +19,7 @@ class ComplianceRAG:
                  pdf_source_dir: str = "frameworks", 
                  vector_db_path: str = "LytrexDB", 
                  embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2",
-                 groq_api_key: Optional[str] = "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",
+                 groq_api_key: Optional[str] = "",
                  model_name: str = "llama-3.3-70b-versatile", 
                  chunk_size: int = 1000,
                  chunk_overlap: int = 200):
