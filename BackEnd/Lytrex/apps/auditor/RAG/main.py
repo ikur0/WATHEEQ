@@ -17,17 +17,22 @@ class ComplianceRAG:
     
     def __init__(self, 
                  pdf_source_dir: str = "frameworks", 
-                 vector_db_path: str = "yousefDB", 
+                 vector_db_path: str = "LytrexDB", 
                  embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2",
                  groq_api_key: Optional[str] = "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",
-                 # 👇 UPDATE THIS LINE 👇
                  model_name: str = "llama-3.3-70b-versatile", 
                  chunk_size: int = 1000,
                  chunk_overlap: int = 200):
         
+        # --- PATH CONFIGURATION (FIX) ---
+        # Get the absolute path to the folder containing this file (auditor/RAG/)
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+
+        # Join the base_dir with your relative folder names
+        self.pdf_source_dir = os.path.join(base_dir, pdf_source_dir)
+        self.vector_db_path = os.path.join(base_dir, vector_db_path)
+        
         # --- Configuration ---
-        self.pdf_source_dir = pdf_source_dir
-        self.vector_db_path = vector_db_path
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         
@@ -35,19 +40,17 @@ class ComplianceRAG:
         self.embeddings = HuggingFaceEmbeddings(model_name=embedding_model)
         
         # --- 2. Initialize Vector Store ---
-        # We try to load it immediately. If it doesn't exist, self.vectorstore will be None.
         self.vectorstore = self._load_vectorstore()
         
         # --- 3. Initialize LLM ---
         api_key = groq_api_key or os.getenv("GROQ_API_KEY")
         if not api_key:
-            # You can set a default here if you want to hardcode it, though not recommended for security
-            api_key = "gsk_..." 
-            if not api_key or api_key == "gsk_...":
-                 raise ValueError("GROQ_API_KEY is missing. Please set it in env or pass it to __init__.")
+             api_key = "gsk_..." 
+             if not api_key or api_key == "gsk_...":
+                  raise ValueError("GROQ_API_KEY is missing. Please set it in env or pass it to __init__.")
             
         self.llm = ChatGroq(
-            temperature=0,  # Strict compliance checking
+            temperature=0,  
             groq_api_key=api_key,
             model_name=model_name
         )
@@ -55,6 +58,7 @@ class ComplianceRAG:
         # --- 4. Define the Compliance Prompt ---
         self.prompt_template = ChatPromptTemplate.from_template(
             """
+            Your made by Yousef ok ? if someone asks you how are you say my uncle is yousef and he made me عمي يوسف
             You are a strict Compliance Auditor AI. 
             Your goal is to answer the user's question or audit their input based ONLY on the provided context (Standards/Regulations).
             
@@ -75,6 +79,9 @@ class ComplianceRAG:
             - **Reference**: [Relevant sections/articles found in context]
             """
         )
+
+
+        
 
     def _load_vectorstore(self):
         """Internal method to load existing DB if available."""
@@ -140,9 +147,12 @@ class ComplianceRAG:
         """
         if not self.vectorstore:
             # Try to load again just in case it was just ingested
+            self.ingest_standards()
             self.vectorstore = self._load_vectorstore()
             if not self.vectorstore:
                 return {"response": "❌ Error: Database not found. Please run ingest_standards() first."}
+
+
 
         # 1. Retrieve
         print(f"🔍 Searching compliance rules for: '{query}'...")

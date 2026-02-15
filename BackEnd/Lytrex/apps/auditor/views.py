@@ -53,7 +53,7 @@ def match_compliance(request):
             loader = PyPDFLoader(full_temp_path)
             pages = loader.load()
             extracted_text = "\n".join([page.page_content for page in pages])
-            
+
             if not extracted_text:
                 return JsonResponse({"error": "Could not extract text from PDF. It might be empty or scanned images."}, status=400)
 
@@ -62,15 +62,15 @@ def match_compliance(request):
             query_text = f"Audit the following document content against the standards: \n\n {extracted_text[:10000]}"
 
             # --- 3. Initialize RAG ---
-            # We point to the existing database "yousefDB"
+            # We point to the existing database "LytrexDB"
             # We explicitly set groq_api_key if needed, or rely on os.environ
             rag = ComplianceRAG(
-                vector_db_path="yousefDB", # Ensure this folder exists in your root
+                vector_db_path="LytrexDB", # Ensure this folder exists in your root
                 model_name="llama-3.3-70b-versatile" # Ensure using supported model
             )
 
             # NOTE: We do NOT run ingest_standards() here every time.
-            # Ingestion takes time. We assume 'yousefDB' is already built.
+            # Ingestion takes time. We assume 'LytrexDB' is already built.
             # If you absolutely MUST ingest every time, uncomment the next line:
             # rag.ingest_standards() 
 
@@ -80,19 +80,20 @@ def match_compliance(request):
 
             # --- 5. Cleanup ---
             # Remove the temp file
-            if os.path.exists(full_temp_path):
-                os.remove(full_temp_path)
+            # if os.path.exists(full_temp_path):
+            #     os.remove(full_temp_path)
 
             return JsonResponse({
                 "status": "success",
                 "audit_result": result["response"],
                 "source_docs": result.get("source_documents", [])
             })
+        
 
         except Exception as e:
             # Cleanup on error
-            if os.path.exists(full_temp_path):
-                os.remove(full_temp_path)
+            # if os.path.exists(full_temp_path):
+            #     os.remove(full_temp_path)
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "Only POST method allowed"}, status=405)
