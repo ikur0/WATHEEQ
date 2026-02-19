@@ -19,7 +19,7 @@ class ComplianceRAG:
                  pdf_source_dir: str = "frameworks", 
                  vector_db_path: str = "LytrexDB", 
                  embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2",
-                 groq_api_key: Optional[str] = "",
+                 groq_api_key: Optional[str] = "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",
                  model_name: str = "llama-3.3-70b-versatile", 
                  chunk_size: int = 1000,
                  chunk_overlap: int = 200):
@@ -138,7 +138,7 @@ class ComplianceRAG:
         self.vectorstore.save_local(self.vector_db_path)
         print(f"✅ Database successfully saved to '{self.vector_db_path}'")
 
-    def check_compliance(self, query: str, k: int = 4) -> Dict[str, Any]:
+    def check_compliance(self, target_pdf_path: str, k: int = 4) -> Dict[str, Any]:
         """
         End-to-End function:
         1. Checks if DB is ready.
@@ -152,12 +152,14 @@ class ComplianceRAG:
             if not self.vectorstore:
                 return {"response": "❌ Error: Database not found. Please run ingest_standards() first."}
 
-
+        loader = PyPDFLoader(target_pdf_path)
+        documents = loader.load()
+        policy_text = "\n".join([doc.page_content for doc in documents])
 
         # 1. Retrieve
-        print(f"🔍 Searching compliance rules for: '{query}'...")
+        print(f"🔍 Searching compliance rules for: '{policy_text}'...")
         retriever = self.vectorstore.as_retriever(search_kwargs={"k": k})
-        retrieved_docs = retriever.invoke(query)
+        retrieved_docs = retriever.invoke(policy_text)
         
         if not retrieved_docs:
             return {"response": "⚠️ No relevant standards found in the database."}
@@ -167,7 +169,7 @@ class ComplianceRAG:
         # 2. Generate Answer
         print("🤖 Analyzing with LLM...")
         chain = self.prompt_template | self.llm | StrOutputParser()
-        response = chain.invoke({"context": formatted_context, "question": query})
+        response = chain.invoke({"context": formatted_context, "question": policy_text})
         
         return {
             "response": response,
@@ -175,4 +177,7 @@ class ComplianceRAG:
         }
 
 # --- usage ---
-
+test = ComplianceRAG()
+target_pdf_path = 'company Compliance test/TechCorp Information Security Policy Version.pdf'
+result = test.check_compliance(target_pdf_path=target_pdf_path)
+print(result['response'])
