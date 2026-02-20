@@ -19,7 +19,7 @@ class ComplianceRAG:
                  pdf_source_dir: str = "frameworks", 
                  vector_db_path: str = "LytrexDB", 
                  embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2",
-                 groq_api_key: Optional[str] = "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",
+                 groq_api_key: Optional[str] = None,
                  model_name: str = "llama-3.3-70b-versatile", 
                  chunk_size: int = 1000,
                  chunk_overlap: int = 200):
@@ -157,7 +157,6 @@ class ComplianceRAG:
         policy_text = "\n".join([doc.page_content for doc in documents])
 
         # 1. Retrieve
-        print(f"🔍 Searching compliance rules for: '{policy_text}'...")
         retriever = self.vectorstore.as_retriever(search_kwargs={"k": k})
         retrieved_docs = retriever.invoke(policy_text)
         
@@ -177,7 +176,7 @@ class ComplianceRAG:
         }
 
 # --- usage ---
-test = ComplianceRAG()
-target_pdf_path = 'company Compliance test/TechCorp Information Security Policy Version.pdf'
-result = test.check_compliance(target_pdf_path=target_pdf_path)
-print(result['response'])
+# test = ComplianceRAG()
+# target_pdf_path = 'company Compliance test/TechCorp Information Security Policy Version.pdf'
+# result = test.check_compliance(target_pdf_path=target_pdf_path)
+# print(result['response'])
