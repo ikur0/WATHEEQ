@@ -52,7 +52,6 @@ def doc(request):
 # =============================================================================
 # COMPLIANCE AUDIT & ANALYSIS
 # =============================================================================
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated]) 
 def match_compliance(request):
@@ -61,6 +60,13 @@ def match_compliance(request):
     Lytrex AI RAG system against a specified framework, and persists the 
     calculated scores and detailed JSON report to the database.
     """
+    # --- 0. Auto-Load Frameworks if Database is Empty ---
+    if not Framework.objects.exists():
+        try:
+            _auto_load_frameworks()
+        except Exception as e:
+            return Response({"error": f"Database was empty, and auto-loading failed: {str(e)}"}, status=500)
+
     # --- 1. Input Extraction & Validation ---
     uploaded_file = request.FILES.get("file")
     if not uploaded_file:
@@ -79,7 +85,6 @@ def match_compliance(request):
     is_detailed = detailed_flag_str in ['true', '1', 't', 'y', 'yes']
 
     # --- 2. Temporary File Storage ---
-    # The RAG pipeline requires a physical file path to load the PDF
     temp_file_path = default_storage.save(f"temp/{uploaded_file.name}", ContentFile(uploaded_file.read()))
     full_temp_path = os.path.join(default_storage.location, temp_file_path)
 
@@ -108,11 +113,9 @@ def match_compliance(request):
             status=calc_status
         )
 
-        # Serialize the AI's dictionary response into a physical JSON file
         report_json_str = json.dumps(result, indent=4)
         report_filename = f"audit_report_{record.id}.json"
         
-        # Django automatically calls record.save() when assigning to a FileField like this
         record.report_path.save(report_filename, ContentFile(report_json_str))
 
         return Response({
@@ -128,7 +131,6 @@ def match_compliance(request):
 
     finally:
         # --- 5. Cleanup ---
-        # Ensure temporary files are deleted to prevent server storage bloat
         try:
             if os.path.exists(full_temp_path):
                 os.remove(full_temp_path)
@@ -223,57 +225,36 @@ def list_user_compliance_records(request):
 # =============================================================================
 # SYSTEM UTILITIES
 # =============================================================================
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def load_frameworks_to_db(request):
+def _auto_load_frameworks():
     """
-    Utility endpoint that scans the local 'RAG/frameworks' directory for PDFs, 
-    extracts their text content, and populates the Framework database table.
+    Internal helper function to scan the frameworks folder and load PDFs 
+    into the database if it is currently empty.
     """
     base_dir = os.path.dirname(os.path.abspath(__file__))
     pdf_dir = os.path.join(base_dir, 'RAG', 'frameworks')
 
     if not os.path.exists(pdf_dir):
-        return Response({"error": f"Directory not found: {pdf_dir}"}, status=400)
+        raise FileNotFoundError(f"Frameworks directory not found: {pdf_dir}")
 
     pdf_files = glob.glob(os.path.join(pdf_dir, '*.pdf'))
     if not pdf_files:
-        return Response({"message": f"No PDFs found in {pdf_dir}."}, status=404)
-
-    results = []
+        raise ValueError(f"No PDFs found in {pdf_dir} to load.")
 
     for pdf_path in pdf_files:
         filename = os.path.basename(pdf_path)
         title = os.path.splitext(filename)[0] 
         
-        try:
-            # Extract raw text from the PDF document
-            loader = PyPDFLoader(pdf_path)
-            documents = loader.load()
-            full_text = "\n\n".join([doc.page_content for doc in documents])
-            
-            if not full_text.strip():
-                results.append({"file": filename, "status": "skipped - empty text"})
-                continue
+        loader = PyPDFLoader(pdf_path)
+        documents = loader.load()
+        full_text = "\n\n".join([doc.page_content for doc in documents])
+        
+        if not full_text.strip():
+            continue
 
-            # Idempotent DB save: Updates existing frameworks or creates new ones based on the title
-            framework, created = Framework.objects.update_or_create(
-                title=title,
-                defaults={
-                    'version': '1.0', 
-                    'full_content': full_text
-                }
-            )
-
-            action = "created" if created else "updated"
-            results.append({"file": filename, "status": action, "id": framework.id})
-
-        except Exception as e:
-            results.append({"file": filename, "status": "error", "message": str(e)})
-
-    return Response({
-        "status": "success",
-        "message": f"Processed {len(pdf_files)} files.",
-        "details": results
-    })
+        Framework.objects.update_or_create(
+            title=title,
+            defaults={
+                'version': '1.0', 
+                'full_content': full_text
+            }
+        )
