@@ -21,7 +21,7 @@ def get_tokens_for_user(user):
 
 # --- 0. Auth Root View (Discovery Endpoint) ---
 @api_view(["GET"])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def auth_root_view(request, format=None):
     """
     Lists all available authentication endpoints with usage examples.

@@ -4,7 +4,6 @@ from django.conf import settings
 
 # 1. Framework Model
 class Framework(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255)
     version = models.CharField(max_length=50)
     full_content = models.TextField()

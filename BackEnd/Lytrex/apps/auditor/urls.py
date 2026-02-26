@@ -7,4 +7,8 @@ urlpatterns = [
     
     # Path 2: Upload PDF -> Extract -> Audit
     path('match-compliance', views.match_compliance, name="auditor.match-compliance"),
+    path('load_frameworks', views.load_frameworks_to_db, name="auditor.load_frameworks"),
+
+    path('compliance-records/all', views.list_user_compliance_records, name='auditor.all_compliance_records'),
+    path('compliance-records/<uuid:record_id>', views.get_compliance_record, name='auditor.get_compliance_record'),
 ]

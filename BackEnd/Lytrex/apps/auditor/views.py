@@ -1,27 +1,34 @@
 import os
 import json
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+import glob
+
+# Django core imports
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 
-# Import PDF extractor
+# Django REST Framework imports
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+# Third-party imports
 from langchain_community.document_loaders import PyPDFLoader
 
-# Import your RAG Class
-# Adjust the import path depending on where your RAGCLASS.py is located
+# Local app imports
 from .RAG.main import ComplianceRAG 
+from .models import Framework, ComplianceRecord
 
 
-import os
-from django.http import JsonResponse
-from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage
+# =============================================================================
+# API DOCUMENTATION
+# =============================================================================
 
-@csrf_exempt
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def doc(request):
     """
-    Returns documentation about the auditor endpoints.
+    Returns documentation detailing the available endpoints, required parameters, 
+    and actions for the Compliance Auditor API.
     """
     data = {
         "status": "success",
@@ -29,48 +36,244 @@ def doc(request):
         "endpoints": {
             "/match-compliance": {
                 "method": "POST",
-                "params": {"file": "PDF file to be audited"},
-                "action": "Extracts text from uploaded PDF and checks compliance against stored frameworks."
+                "auth_required": True,
+                "params": {
+                    "file": "PDF file to be audited (Multipart form-data).",
+                    "framework_id": "ID of the Framework being assessed against (Required). 1--> ECC.  2 --> NCA.    3 ----> SAMA",
+                    "detailed": "Optional boolean (true/false). Defaults to true."
+                },
+                "action": "Extracts text, checks compliance, and saves a ComplianceRecord to the DB."
             }
         }
     }
-    return JsonResponse(data)
+    return Response(data)
 
-@csrf_exempt
+
+# =============================================================================
+# COMPLIANCE AUDIT & ANALYSIS
+# =============================================================================
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated]) 
 def match_compliance(request):
-    if request.method != "POST":
-        return JsonResponse({"error": "Only POST method allowed"}, status=405)
-
+    """
+    Core auditing endpoint. Receives a user's PDF, processes it through the 
+    Lytrex AI RAG system against a specified framework, and persists the 
+    calculated scores and detailed JSON report to the database.
+    """
+    # --- 1. Input Extraction & Validation ---
     uploaded_file = request.FILES.get("file")
     if not uploaded_file:
-        return JsonResponse({"error": "No file uploaded. Please send a file with key 'file'."}, status=400)
+        return Response({"error": "No file uploaded. Please send a file with key 'file'."}, status=400)
 
+    framework_id_raw = request.data.get("framework_id")
+    if not framework_id_raw:
+        return Response({"error": "Missing 'framework_id' in request body."}, status=400)
+
+    try:
+        framework = Framework.objects.get(id=int(framework_id_raw))
+    except (Framework.DoesNotExist, ValueError):
+        return Response({"error": f"Framework with ID {framework_id_raw} not found or invalid."}, status=404)
+
+    detailed_flag_str = str(request.data.get("detailed", "true")).lower()
+    is_detailed = detailed_flag_str in ['true', '1', 't', 'y', 'yes']
+
+    # --- 2. Temporary File Storage ---
+    # The RAG pipeline requires a physical file path to load the PDF
     temp_file_path = default_storage.save(f"temp/{uploaded_file.name}", ContentFile(uploaded_file.read()))
     full_temp_path = os.path.join(default_storage.location, temp_file_path)
 
     try:
-        # IMPORTANT: Don’t create this inside every request in production
-        rag = ComplianceRAG(
-            # vector_db_path="LytrexDB",
-            # model_name="llama-3.3-70b-versatile", ## defualt (if you want to change them change them in the class default values)
+        # --- 3. AI Processing (RAG) ---
+        rag = ComplianceRAG()
+        result = rag.check_compliance(full_temp_path, k=4, detailed=is_detailed)
+
+        if "error" in result:
+            return Response({"status": "error", "message": result["error"]}, status=500)
+
+        # --- 4. Database Persistence ---
+        score = float(result.get("compliance_score", 0))
+
+        if score >= 90:
+            calc_status = ComplianceRecord.Status.COMPLIANT
+        elif score >= 50:
+            calc_status = ComplianceRecord.Status.PARTIAL
+        else:
+            calc_status = ComplianceRecord.Status.NON_COMPLIANT
+
+        record = ComplianceRecord(
+            user=request.user,
+            assessed_against=framework,
+            score=score,
+            status=calc_status
         )
 
-        # ✅ Pass PDF path (this matches your current ComplianceRAG.check_compliance signature)
-        result = rag.check_compliance(full_temp_path, k=4)
+        # Serialize the AI's dictionary response into a physical JSON file
+        report_json_str = json.dumps(result, indent=4)
+        report_filename = f"audit_report_{record.id}.json"
+        
+        # Django automatically calls record.save() when assigning to a FileField like this
+        record.report_path.save(report_filename, ContentFile(report_json_str))
 
-        return JsonResponse({
+        return Response({
             "status": "success",
-            "audit_result": result["response"],
-            "source_docs": result.get("source_documents", []),
+            "record_id": record.id,
+            "calculated_status": calc_status,
+            "is_detailed_response": is_detailed,
+            "audit_result": result, 
         })
 
     except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+        return Response({"error": str(e)}, status=500)
 
     finally:
-        # Cleanup (recommended)
+        # --- 5. Cleanup ---
+        # Ensure temporary files are deleted to prevent server storage bloat
         try:
             if os.path.exists(full_temp_path):
                 os.remove(full_temp_path)
         except Exception:
             pass
+
+
+# =============================================================================
+# RECORD RETRIEVAL & HISTORY
+# =============================================================================
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_compliance_record(request, record_id):
+    """
+    Retrieves a specific ComplianceRecord by its ID.
+    Reads the associated JSON report file from storage and injects its contents 
+    directly into the API response for the frontend to render.
+    """
+    try:
+        # Security: Filter by request.user to prevent unauthorized access to other companies' audits
+        record = ComplianceRecord.objects.get(id=record_id, user=request.user)
+        
+        report_data = None
+        if record.report_path:
+            try:
+                # Safely open and read the JSON file associated with this record
+                with record.report_path.open('r') as f:
+                    file_content = f.read()
+                    
+                    # Cloud storage backends (like AWS S3) often return bytes instead of strings
+                    if isinstance(file_content, bytes):
+                        file_content = file_content.decode('utf-8')
+                        
+                    report_data = json.loads(file_content)
+            except json.JSONDecodeError:
+                report_data = {"error": "The report file exists but is not valid JSON."}
+            except Exception as e:
+                report_data = {"error": f"Failed to read report file: {str(e)}"}
+
+        data = {
+            "id": str(record.id),
+            "framework_title": record.assessed_against.title if record.assessed_against else None,
+            "framework_version": record.assessed_against.version if record.assessed_against else None,
+            "assessment_date": record.assessment_date.isoformat(),
+            "status": record.status,
+            "score": record.score,
+            "report_data": report_data
+        }
+
+        return Response({"status": "success", "data": data})
+
+    except ComplianceRecord.DoesNotExist:
+        return Response({"error": "Record not found or you do not have permission to view it."}, status=404)
+    except ValueError:
+        return Response({"error": "Invalid record ID format."}, status=400)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_user_compliance_records(request):
+    """
+    Returns a lightweight, chronological list of all past compliance audits 
+    for the logged-in user. Ideal for populating user dashboards.
+    """
+    try:
+        records = ComplianceRecord.objects.filter(user=request.user).order_by('-assessment_date')
+        
+        records_list = [
+            {
+                "id": str(record.id),
+                "framework_title": record.assessed_against.title if record.assessed_against else "Unknown Framework",
+                "score": record.score,
+                "status": record.status,
+                "assessment_date": record.assessment_date.isoformat(),
+            }
+            for record in records
+        ]
+        
+        return Response({
+            "status": "success",
+            "count": len(records_list),
+            "records": records_list
+        })
+        
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+
+# =============================================================================
+# SYSTEM UTILITIES
+# =============================================================================
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def load_frameworks_to_db(request):
+    """
+    Utility endpoint that scans the local 'RAG/frameworks' directory for PDFs, 
+    extracts their text content, and populates the Framework database table.
+    """
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    pdf_dir = os.path.join(base_dir, 'RAG', 'frameworks')
+
+    if not os.path.exists(pdf_dir):
+        return Response({"error": f"Directory not found: {pdf_dir}"}, status=400)
+
+    pdf_files = glob.glob(os.path.join(pdf_dir, '*.pdf'))
+    if not pdf_files:
+        return Response({"message": f"No PDFs found in {pdf_dir}."}, status=404)
+
+    results = []
+
+    for pdf_path in pdf_files:
+        filename = os.path.basename(pdf_path)
+        title = os.path.splitext(filename)[0] 
+        
+        try:
+            # Extract raw text from the PDF document
+            loader = PyPDFLoader(pdf_path)
+            documents = loader.load()
+            full_text = "\n\n".join([doc.page_content for doc in documents])
+            
+            if not full_text.strip():
+                results.append({"file": filename, "status": "skipped - empty text"})
+                continue
+
+            # Idempotent DB save: Updates existing frameworks or creates new ones based on the title
+            framework, created = Framework.objects.update_or_create(
+                title=title,
+                defaults={
+                    'version': '1.0', 
+                    'full_content': full_text
+                }
+            )
+
+            action = "created" if created else "updated"
+            results.append({"file": filename, "status": action, "id": framework.id})
+
+        except Exception as e:
+            results.append({"file": filename, "status": "error", "message": str(e)})
+
+    return Response({
+        "status": "success",
+        "message": f"Processed {len(pdf_files)} files.",
+        "details": results
+    })
