@@ -1,8 +1,6 @@
 import os
 import glob
-import re
-import json
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any
 
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
@@ -12,30 +10,35 @@ from langchain_groq import ChatGroq
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 
+
 class ComplianceRAG:
-    SUPPORTED_FRAMEWORKS = ["NCA", "ECC", "SAMA"]
+    """
+    A production-ready RAG class for Compliance Checking.
+    Includes a Relevance Gate to reject non-framework documents.
+    """
 
     def __init__(self,
                  pdf_source_dir: str = "frameworks",
                  vector_db_path: str = "LytrexDB",
                  embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2",
-                 groq_api_key: Optional[str] = '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',
                  model_name: str = "llama-3.3-70b-versatile",
                  chunk_size: int = 1000,
                  chunk_overlap: int = 200):
 
         base_dir = os.path.dirname(os.path.abspath(__file__))
         self.pdf_source_dir = os.path.join(base_dir, pdf_source_dir)
-        self.vector_db_base_path = os.path.join(base_dir, vector_db_path)
+        self.vector_db_path = os.path.join(base_dir, vector_db_path)
+
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
 
         self.embeddings = HuggingFaceEmbeddings(model_name=embedding_model)
-        self.vectorstores: Dict[str, Any] = self._load_all_vectorstores()
+        self.vectorstore = self._load_vectorstore()
 
-        api_key = groq_api_key or os.getenv("GROQ_API_KEY")
+        # Secure API Key Loading
+        api_key ='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'
         if not api_key:
-            raise ValueError("GROQ_API_KEY is missing. Set it as an environment variable.")
+            raise ValueError("GROQ_API_KEY environment variable is missing. Please set it before running.")
 
         self.llm = ChatGroq(
             temperature=0,
@@ -43,172 +46,182 @@ class ComplianceRAG:
             model_name=model_name
         )
 
-        self._setup_prompts()
-        self.output_parser = JsonOutputParser()
-
-    def _setup_prompts(self):
+        # --- DETAILED PROMPT (With Relevance Gate) ---
         self.detailed_prompt = ChatPromptTemplate.from_template(
             """
             You are an elite, strict Compliance Auditor AI developed by the Lytrex Team.
-            The framework being evaluated is: {framework_name}
-
+            First, determine if the <company_document> is actually a company policy, security document, or architecture document relevant to the <framework_context>.
+            
             <framework_context>
             {context}
             </framework_context>
 
-            <company_document_chunks>
+            <company_document>
             {company_doc}
-            </company_document_chunks>
+            </company_document>
 
-            TASK:
-            1. Determine if the document chunks are relevant to {framework_name} compliance.
-            2. If NOT relevant, set "is_relevant" to false, "compliance_score" to 0, and explain why in "executive_summary".
-            3. If IS relevant, set "is_relevant" to true and provide analysis based ONLY on the provided chunks.
+            If the document is unrelated (e.g., a random story, a recipe, or non-corporate text), set "is_relevant" to false and leave the rest blank.
+            If it IS relevant, evaluate it strictly and quote specific article/section numbers.
 
-            Respond ONLY with valid JSON using this exact schema (Do NOT add an "error" key or any unlisted keys):
+            Respond ONLY with a valid JSON object matching this exact structure:
             {{
-                "framework": "{framework_name}",
                 "is_relevant": true,
                 "compliance_score": 85,
-                "executive_summary": "Summary text.",
-                "compliant_areas": [],
-                "violations": [],
-                "recommendations": []
+                "executive_summary": "A detailed 3-4 sentence summary or reason for rejection.",
+                "compliant_areas": ["List of precise things they did right"],
+                "violations": ["List of specific breaches with framework section references"],
+                "recommendations": ["Detailed actionable steps"]
             }}
             """
         )
 
+        # --- CONCISE PROMPT (With Relevance Gate & Unified JSON) ---
         self.concise_prompt = ChatPromptTemplate.from_template(
             """
-            You are a fast Compliance Auditor AI.
-            Evaluate against {framework_name}.
-            <framework_context>{context}</framework_context>
-            <company_document_chunks>{company_doc}</company_document_chunks>
+            You are a meticulous, uncompromising Lead Compliance Auditor developed by the Lytrex Team. 
 
-            TASK: 
-            1. Check relevance. 
-            2. If NOT relevant, set "is_relevant" to false, "compliance_score" to 0, and explain why in "summary".
+            Step 1: Determine relevance. If the <company_document> is not a corporate or security document related to the <framework_context>, set "is_relevant" to false and stop.
+            Step 2: If relevant, strictly evaluate the <company_document> against the <framework_context>.
 
-            Respond ONLY with valid JSON using this exact schema (Do NOT add an "error" key):
+            Evaluation Rules:
+            If the document is unrelated (e.g., a random story, a recipe, or non-corporate text), set "is_relevant" to false and leave the rest blank.
+            If it IS relevant, evaluate it strictly and quote specific article/section numbers. 
+            Cross-Reference: You MUST check every single requirement in the framework against the company document.
+            Be Specific: State the exact discrepancy (e.g., "SAMA requires annual assessments; the company does them biennially").
+            Strict Scoring: Start at 100. Deduct 15-20 points for every critical missing control. Be ruthless.
+            
+            
+            <framework_context>
+            {context}
+            </framework_context>
+
+            <company_document>
+            {company_doc}
+            </company_document>
+
+            Respond ONLY with a valid JSON object matching this exact structure:
             {{
-                "framework": "{framework_name}",
                 "is_relevant": true,
-                "compliance_score": 85,
-                "summary": "Summary text.",
-                "key_issues": []
+                "internal_audit_reasoning": "Briefly map which framework controls pass or fail before generating the score.",
+                "compliance_score": 0,
+                "summary": "A strict 1-sentence summary of the compliance posture or reason for rejection.",
+                "key_issues": [
+                    "Specific Issue 1: Expected [Framework Metric] but found [Company Metric]",
+                    "Specific Issue 2: Expected [Framework Metric] but found [Company Metric]"
+                ]
             }}
             """
         )
 
-    def _framework_db_path(self, framework: str) -> str:
-        return os.path.join(self.vector_db_base_path, framework)
+        self.output_parser = JsonOutputParser()
 
-    def _framework_db_exists(self, framework: str) -> bool:
-        path = self._framework_db_path(framework)
-        return os.path.exists(os.path.join(path, "index.faiss"))
+    def _load_vectorstore(self):
+        if os.path.exists(self.vector_db_path):
+            return FAISS.load_local(self.vector_db_path, self.embeddings, allow_dangerous_deserialization=True)
+        return None
 
-    def _load_all_vectorstores(self) -> Dict[str, Any]:
-        stores = {}
-        for fw in self.SUPPORTED_FRAMEWORKS:
-            if self._framework_db_exists(fw):
-                try:
-                    stores[fw] = FAISS.load_local(self._framework_db_path(fw), self.embeddings, allow_dangerous_deserialization=True)
-                except Exception: stores[fw] = None
-            else: stores[fw] = None
-        return stores
+    def ingest_standards(self):
+        print(f"Checking for frameworks in: {self.pdf_source_dir}")
+        pdf_paths = glob.glob(os.path.join(self.pdf_source_dir, "*.pdf"))
+        if not pdf_paths:
+            print("No framework PDFs found to ingest.")
+            return
 
-    def _ingest_single_framework(self, framework: str) -> bool:
-        fw_dir = os.path.join(self.pdf_source_dir, framework)
-        pdf_paths = glob.glob(os.path.join(fw_dir, "*.pdf"))
-        if not pdf_paths: return False
+        all_documents = []
+        for path in pdf_paths:
+            print(f"Ingesting framework: {path}")
+            all_documents.extend(PyPDFLoader(path).load())
 
-        all_docs = []
-        for p in pdf_paths: all_docs.extend(PyPDFLoader(p).load())
-        
-        chunks = RecursiveCharacterTextSplitter(chunk_size=self.chunk_size, chunk_overlap=self.chunk_overlap).split_documents(all_docs)
-        db = FAISS.from_documents(chunks, self.embeddings)
-        self.vectorstores[framework] = db
-        db.save_local(self._framework_db_path(framework))
-        return True
+        if not all_documents: return
 
-    def _ensure_framework_ready(self, framework: str) -> bool:
-        if self.vectorstores.get(framework): return True
-        if self._framework_db_exists(framework):
-            try:
-                self.vectorstores[framework] = FAISS.load_local(self._framework_db_path(framework), self.embeddings, allow_dangerous_deserialization=True)
-                return True
-            except: pass
-        return self._ingest_single_framework(framework)
+        chunks = RecursiveCharacterTextSplitter(chunk_size=self.chunk_size,
+                                                chunk_overlap=self.chunk_overlap).split_documents(all_documents)
 
-    def _check_single_framework(self, framework: str, company_db: FAISS, k: int, detailed: bool) -> Dict[str, Any]:
-        if not self._ensure_framework_ready(framework):
-            return {"framework": framework, "error": f"Standards not found for {framework}."}
+        if self.vectorstore:
+            self.vectorstore.add_documents(chunks)
+        else:
+            self.vectorstore = FAISS.from_documents(chunks, self.embeddings)
 
-        # --- 1. RAG on the UPLOADED Document ---
-        company_retriever = company_db.as_retriever(search_kwargs={"k": 15})
-        query = f"{framework} compliance, cybersecurity policy, access control, data protection, risk management, incident response"
-        company_relevant_docs = company_retriever.invoke(query)
-        company_doc_chunks = "\n\n---\n\n".join(list(set(d.page_content for d in company_relevant_docs)))
+        self.vectorstore.save_local(self.vector_db_path)
+        print("Framework ingestion complete.")
 
-        # --- 2. RAG on the FRAMEWORK Document ---
-        framework_retriever = self.vectorstores[framework].as_retriever(search_kwargs={"k": k})
-        framework_docs = []
-        for c in company_relevant_docs[:3]: 
-            framework_docs.extend(framework_retriever.invoke(c.page_content))
-        
-        framework_context = "\n\n---\n\n".join(list(set(d.page_content for d in framework_docs)))
+    def check_compliance(self, target_pdf_path: str, k: int = 5, detailed: bool = False) -> Dict[str, Any]:
+        if not self.vectorstore:
+            self.ingest_standards()
+            self.vectorstore = self._load_vectorstore()
+            if not self.vectorstore:
+                return {"error": "Database not found and could not be created."}
 
-        prompt = self.detailed_prompt if detailed else self.concise_prompt
+        if not os.path.exists(target_pdf_path):
+            return {"error": f"Target PDF not found at path: {target_pdf_path}"}
+
+        print(f"Analyzing target document: {target_pdf_path}")
+        documents = PyPDFLoader(target_pdf_path).load()
+        target_chunks = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=100).split_documents(documents)
+        full_company_text = "\n".join([doc.page_content for doc in documents])
+
+        retriever = self.vectorstore.as_retriever(search_kwargs={"k": k})
+        retrieved_docs = []
+
+        for chunk in target_chunks:
+            retrieved_docs.extend(retriever.invoke(chunk.page_content))
+
+        # Deduplicate retrieved standards
+        unique_docs = {doc.page_content: doc for doc in retrieved_docs}.values()
+        formatted_context = "\n\n---\n\n".join(doc.page_content for doc in unique_docs)
+
+        if not formatted_context:
+            return {"error": "No relevant standards found in the database."}
+
+        # Select the prompt based on the 'detailed' flag
+        active_prompt = self.detailed_prompt if detailed else self.concise_prompt
+        chain = active_prompt | self.llm | self.output_parser
 
         try:
-            return (prompt | self.llm | self.output_parser).invoke({
-                "framework_name": framework, 
-                "context": framework_context, 
-                "company_doc": company_doc_chunks 
+            print("Sending to LLM for evaluation...")
+            result = chain.invoke({
+                "context": formatted_context,
+                "company_doc": full_company_text
             })
-        except Exception:
-            # --- Bulletproof Fallback Parsing ---
-            try:
-                raw_response = (prompt | self.llm).invoke({
-                    "framework_name": framework, "context": framework_context, "company_doc": company_doc_chunks
-                })
-                text = raw_response.content if hasattr(raw_response, 'content') else str(raw_response)
-                
-                start = text.find('{')
-                end = text.rfind('}')
-                
-                if start != -1 and end != -1 and start < end:
-                    json_str = text[start:end+1]
-                    return json.loads(json_str)
-                else:
-                    return {
-                        "framework": framework, 
-                        "is_relevant": False, 
-                        "executive_summary": text.strip()[:300], 
-                        "compliance_score": 0
-                    }
-            except Exception as e:
-                return {"framework": framework, "is_relevant": False, "error": f"JSON parse failed: {str(e)}"}
 
-    def check_compliance(self, target_pdf_path: str, frameworks: Optional[List[str]] = None, k: int = 5, detailed: bool = True) -> Dict[str, Any]:
-        if not os.path.exists(target_pdf_path): return {"error": "File not found"}
-        
-        requested = frameworks or self.SUPPORTED_FRAMEWORKS
-        try:
-            docs = PyPDFLoader(target_pdf_path).load()
-        except Exception as e: return {"error": f"PDF load failed: {e}"}
+            # --- SAFETY CHECK: Prevent NoneType errors on empty AI responses ---
+            if not result or not isinstance(result, dict):
+                return {
+                    "error": "Document Rejected: The uploaded file does not appear to be a relevant security or policy document.",
+                    "llm_reasoning": "The AI returned an empty or non-JSON response."
+                }
 
-        if not docs: return {"error": "Empty PDF"}
+            # THE RELEVANCE GATE
+            if not result.get("is_relevant", True):
+                return {
+                    "error": "Document Rejected: The uploaded file does not appear to be a relevant security or policy document.",
+                    "llm_reasoning": result.get("summary", result.get("executive_summary", "No reason provided."))
+                }
 
-        # Chunk the uploaded document
-        chunks = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=100).split_documents(docs)
-        
-        # Create a temporary Vector Database for the uploaded document
-        temp_company_db = FAISS.from_documents(chunks, self.embeddings)
+            return result
 
-        results = {}
-        for fw in requested:
-            if fw in self.SUPPORTED_FRAMEWORKS:
-                results[fw] = self._check_single_framework(fw, temp_company_db, k, detailed)
-                
-        return {"results": results}
+        except Exception as e:
+            return {"error": f"Failed to parse LLM response: {str(e)}"}
+
+
+# ==========================================
+# EXECUTION BLOCK
+# ==========================================
+if __name__ == "__main__":
+    import json
+
+    # Initialize the RAG system
+    rag_system = ComplianceRAG()
+
+    # Define your target test file here
+    # Make sure this path actually exists on your machine!
+    target_file = 'company Compliance test/TechCorp Information Security Policy Version.pdf'
+
+    # Run the compliance check (set detailed=False to use the concise, strict prompt)
+    report = rag_system.check_compliance(target_pdf_path=target_file, detailed=False)
+
+    # Print the output beautifully
+    print("\n" + "=" * 50)
+    print("FINAL AUDIT REPORT")
+    print("=" * 50)
+    print(json.dumps(report, indent=4))

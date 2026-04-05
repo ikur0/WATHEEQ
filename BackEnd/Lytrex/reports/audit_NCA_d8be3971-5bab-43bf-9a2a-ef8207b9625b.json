@@ -1,0 +1,9 @@
+{
+    "framework": "NCA",
+    "compliance_score": 0,
+    "audit_confidence": 0,
+    "executive_summary": "The AI returned an empty response. The document is likely entirely irrelevant.",
+    "compliant_areas": [],
+    "violations": [],
+    "recommendations": []
+}

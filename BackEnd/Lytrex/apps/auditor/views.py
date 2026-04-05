@@ -14,6 +14,7 @@ from langchain_community.document_loaders import PyPDFLoader
 from .RAG.main import ComplianceRAG
 from .models import Framework, ComplianceRecord
 
+
 FRAMEWORK_ID_MAP = {
     1: "ECC",
     2: "NCA",
@@ -38,7 +39,7 @@ def doc(request):
                 "params": {
                     "file": "PDF file to be audited (Multipart form-data).",
                     "framework_id": "ID of the Framework being assessed against (Required). 1 --> ECC.  2 --> NCA.  3 --> SAMA",
-                    "detailed": "Optional boolean (true/false). Defaults to true."
+                    "detailed": "Optional boolean (true/false). Defaults to false for concise prompt."
                 },
                 "action": "Checks compliance against the selected framework. Saves a ComplianceRecord to the DB.",
                 "response_shape": {
@@ -47,7 +48,7 @@ def doc(request):
                     "framework": "NCA",
                     "score": 85.0,
                     "calculated_status": "PARTIAL",
-                    "is_detailed_response": True,
+                    "is_detailed_response": False,
                     "audit_result": {}
                 }
             }
@@ -100,7 +101,7 @@ def match_compliance(request):
         if not framework_obj:
             return Response({"error": f"Framework '{framework_name}' not found in DB."}, status=404)
 
-    detailed_flag_str = str(request.data.get("detailed", "true")).lower()
+    detailed_flag_str = str(request.data.get("detailed", "false")).lower()
     is_detailed = detailed_flag_str in ['true', '1', 't', 'y', 'yes']
 
     # --- 2. Save temp file ---
@@ -112,67 +113,38 @@ def match_compliance(request):
     try:
         # --- 3. Run RAG ---
         rag = ComplianceRAG()
-        rag_result = rag.check_compliance(
+        
+        # Matches the updated main.py signature: check_compliance(target_pdf_path, k, detailed)
+        fw_result = rag.check_compliance(
             target_pdf_path=full_temp_path,
-            frameworks=[framework_name],
-            k=4,
+            k=5,
             detailed=is_detailed
         )
 
-        if not rag_result:
-            return Response({"error": "RAG returned no result."}, status=500)
+        # Catch empty or completely failed execution
+        if not fw_result:
+            return Response({"error": "The AI returned an empty response."}, status=500)
 
-        if "error" in rag_result:
-            return Response({"error": rag_result["error"]}, status=500)
-
-        fw_result = rag_result.get("results", {}).get(framework_name)
-        
-        # Keep this print statement to monitor raw LLM outputs
-        print("\n\n--- RAW LLM OUTPUT ---")
-        print(json.dumps(fw_result, indent=4) if isinstance(fw_result, dict) else fw_result)
-        print("----------------------\n\n")
-
-        # --- Catch Empty/Malformed Results First ---
-        if not fw_result or not isinstance(fw_result, dict) or len(fw_result) == 0:
-            return Response({
-                "status": "irrelevant",
-                "message": f"The AI could not extract meaningful compliance data. The document is likely not related to {framework_name}.",
-                "framework": framework_name,
-            }, status=422)
-
-        # --- Error Check First ---
+        # --- Error & Relevance Check ---
+        # Matches the error dictionaries returned by the new main.py
         if "error" in fw_result:
-            err_msg = str(fw_result["error"]).lower()
-            if "irrelevant" in err_msg or "not relevant" in err_msg or "parse failed" in err_msg:
-                 return Response({
+            err_msg = fw_result["error"]
+            
+            # Catch the specific Relevance Gate rejection from main.py
+            if "Document Rejected" in err_msg:
+                return Response({
                     "status": "irrelevant",
-                    "message": "The document could not be processed, likely because it does not match expected compliance format.",
-                    "framework": framework_name,
+                    "message": err_msg,
+                    "reasoning": fw_result.get("llm_reasoning", "The AI determined this document is not a corporate or security policy."),
+                    "framework": framework_name
                 }, status=422)
             
-            return Response({"error": fw_result["error"]}, status=500)
-
-        # --- Relevance Gate (Updated to be smart about missing keys) ---
-        is_relevant = fw_result.get("is_relevant")
-        score = float(fw_result.get("compliance_score", 0))
-
-        # If the LLM forgot the "is_relevant" boolean, but generated a score > 0, it is relevant.
-        if is_relevant is None and score > 0:
-            is_relevant = True
-
-        # Now check if it's explicitly marked false, AND the score is 0
-        if str(is_relevant).lower() in ['false', 'f', '0', 'none'] and score == 0:
-            message = fw_result.get("executive_summary", fw_result.get("summary", 
-                f"The uploaded document does not appear to be related to the {framework_name} framework."
-            ))
-            
-            return Response({
-                "status": "irrelevant",
-                "message": message,
-                "framework": framework_name,
-            }, status=422)
+            # Standard hard failures (e.g., file not found, json parse failed)
+            return Response({"error": err_msg}, status=500)
 
         # --- 4. Persist ComplianceRecord ---
+        score = float(fw_result.get("compliance_score", 0))
+
         if score >= 90:
             calc_status = ComplianceRecord.Status.COMPLIANT
         elif score >= 50:
