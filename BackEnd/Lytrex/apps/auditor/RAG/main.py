@@ -36,7 +36,7 @@ class ComplianceRAG:
         self.vectorstore = self._load_vectorstore()
 
         # Secure API Key Loading
-        api_key ='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'
+        api_key ='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'
         if not api_key:
             raise ValueError("GROQ_API_KEY environment variable is missing. Please set it before running.")
 
@@ -49,8 +49,17 @@ class ComplianceRAG:
         # --- DETAILED PROMPT (With Relevance Gate) ---
         self.detailed_prompt = ChatPromptTemplate.from_template(
             """
-            You are an elite, strict Compliance Auditor AI developed by the Lytrex Team.
-            First, determine if the <company_document> is actually a company policy, security document, or architecture document relevant to the <framework_context>.
+            You are an elite, uncompromising Lead Compliance Auditor AI developed by the Lytrex Team.
+
+            Step 1: Determine relevance. If the <company_document> is not a corporate or security document related to the <framework_context>, set "is_relevant" to false and stop.
+            Step 2: If relevant, strictly evaluate the <company_document> against the <framework_context>.
+
+            Evaluation Rules:
+            If the document is unrelated (e.g., a random story, a recipe, or non-corporate text), set "is_relevant" to false and leave the rest blank.
+            If it IS relevant, evaluate it strictly and quote specific article/section numbers. 
+            Cross-Reference: You MUST check every single requirement in the framework against the company document.
+            Be Specific: State the exact discrepancy or alignment (e.g., "SAMA requires annual assessments; the company does them biennially").
+            Strict Scoring: Start at 100. Deduct 15-20 points for every critical missing control. Be ruthless.
             
             <framework_context>
             {context}
@@ -60,17 +69,21 @@ class ComplianceRAG:
             {company_doc}
             </company_document>
 
-            If the document is unrelated (e.g., a random story, a recipe, or non-corporate text), set "is_relevant" to false and leave the rest blank.
-            If it IS relevant, evaluate it strictly and quote specific article/section numbers.
-
             Respond ONLY with a valid JSON object matching this exact structure:
             {{
                 "is_relevant": true,
+                "internal_audit_reasoning": "Briefly map which framework controls pass or fail before calculating the final score.",
                 "compliance_score": 85,
-                "executive_summary": "A detailed 3-4 sentence summary or reason for rejection.",
-                "compliant_areas": ["List of precise things they did right"],
-                "violations": ["List of specific breaches with framework section references"],
-                "recommendations": ["Detailed actionable steps"]
+                "executive_summary": "A detailed 3-4 sentence summary of the compliance posture or reason for rejection.",
+                "compliant_areas": [
+                    "Control [Section X]: [Precise description of what they did right]"
+                ],
+                "violations": [
+                    "Violation [Section Y]: [Specific breach and why it fails the framework]"
+                ],
+                "recommendations": [
+                    "Actionable step to remediate Violation [Section Y]"
+                ]
             }}
             """
         )
