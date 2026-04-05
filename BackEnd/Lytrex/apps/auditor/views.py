@@ -2,21 +2,23 @@ import os
 import json
 import glob
 
-# Django core imports
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
 
-# Django REST Framework imports
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-# Third-party imports
 from langchain_community.document_loaders import PyPDFLoader
 
-# Local app imports
-from .RAG.main import ComplianceRAG 
+from .RAG.main import ComplianceRAG
 from .models import Framework, ComplianceRecord
+
+FRAMEWORK_ID_MAP = {
+    1: "ECC",
+    2: "NCA",
+    3: "SAMA",
+}
 
 
 # =============================================================================
@@ -26,10 +28,6 @@ from .models import Framework, ComplianceRecord
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def doc(request):
-    """
-    Returns documentation detailing the available endpoints, required parameters, 
-    and actions for the Compliance Auditor API.
-    """
     data = {
         "status": "success",
         "description": "Compliance Auditor API",
@@ -39,10 +37,19 @@ def doc(request):
                 "auth_required": True,
                 "params": {
                     "file": "PDF file to be audited (Multipart form-data).",
-                    "framework_id": "ID of the Framework being assessed against (Required). 1--> ECC.  2 --> NCA.    3 ----> SAMA",
+                    "framework_id": "ID of the Framework being assessed against (Required). 1 --> ECC.  2 --> NCA.  3 --> SAMA",
                     "detailed": "Optional boolean (true/false). Defaults to true."
                 },
-                "action": "Extracts text, checks compliance, and saves a ComplianceRecord to the DB."
+                "action": "Checks compliance against the selected framework. Saves a ComplianceRecord to the DB.",
+                "response_shape": {
+                    "status": "success",
+                    "record_id": "uuid",
+                    "framework": "NCA",
+                    "score": 85.0,
+                    "calculated_status": "PARTIAL",
+                    "is_detailed_response": True,
+                    "audit_result": {}
+                }
             }
         }
     }
@@ -52,53 +59,120 @@ def doc(request):
 # =============================================================================
 # COMPLIANCE AUDIT & ANALYSIS
 # =============================================================================
+
 @api_view(['POST'])
-@permission_classes([IsAuthenticated]) 
+@permission_classes([IsAuthenticated])
 def match_compliance(request):
-    """
-    Core auditing endpoint. Receives a user's PDF, processes it through the 
-    Lytrex AI RAG system against a specified framework, and persists the 
-    calculated scores and detailed JSON report to the database.
-    """
-    # --- 0. Auto-Load Frameworks if Database is Empty ---
+    # --- 0. Auto-load frameworks if DB is empty ---
     if not Framework.objects.exists():
         try:
             _auto_load_frameworks()
         except Exception as e:
-            return Response({"error": f"Database was empty, and auto-loading failed: {str(e)}"}, status=500)
+            return Response({"error": f"Auto-loading frameworks failed: {str(e)}"}, status=500)
 
-    # --- 1. Input Extraction & Validation ---
+    # --- 1. Validate inputs ---
     uploaded_file = request.FILES.get("file")
     if not uploaded_file:
-        return Response({"error": "No file uploaded. Please send a file with key 'file'."}, status=400)
+        return Response({"error": "No file uploaded. Send a PDF with key 'file'."}, status=400)
 
     framework_id_raw = request.data.get("framework_id")
     if not framework_id_raw:
         return Response({"error": "Missing 'framework_id' in request body."}, status=400)
 
     try:
-        framework = Framework.objects.get(id=int(framework_id_raw))
-    except (Framework.DoesNotExist, ValueError):
-        return Response({"error": f"Framework with ID {framework_id_raw} not found or invalid."}, status=404)
+        framework_id = int(framework_id_raw)
+    except ValueError:
+        return Response({"error": "'framework_id' must be an integer."}, status=400)
+
+    framework_name = FRAMEWORK_ID_MAP.get(framework_id)
+    if not framework_name:
+        return Response({
+            "error": f"Invalid framework_id '{framework_id}'. Valid options: 1=ECC, 2=NCA, 3=SAMA"
+        }, status=400)
+
+    framework_obj = Framework.objects.filter(title__iexact=framework_name).first()
+    if not framework_obj:
+        try:
+            _auto_load_frameworks()
+        except Exception:
+            pass
+        framework_obj = Framework.objects.filter(title__iexact=framework_name).first()
+        if not framework_obj:
+            return Response({"error": f"Framework '{framework_name}' not found in DB."}, status=404)
 
     detailed_flag_str = str(request.data.get("detailed", "true")).lower()
     is_detailed = detailed_flag_str in ['true', '1', 't', 'y', 'yes']
 
-    # --- 2. Temporary File Storage ---
-    temp_file_path = default_storage.save(f"temp/{uploaded_file.name}", ContentFile(uploaded_file.read()))
+    # --- 2. Save temp file ---
+    temp_file_path = default_storage.save(
+        f"temp/{uploaded_file.name}", ContentFile(uploaded_file.read())
+    )
     full_temp_path = os.path.join(default_storage.location, temp_file_path)
 
     try:
-        # --- 3. AI Processing (RAG) ---
+        # --- 3. Run RAG ---
         rag = ComplianceRAG()
-        result = rag.check_compliance(full_temp_path, k=4, detailed=is_detailed)
+        rag_result = rag.check_compliance(
+            target_pdf_path=full_temp_path,
+            frameworks=[framework_name],
+            k=4,
+            detailed=is_detailed
+        )
 
-        if "error" in result:
-            return Response({"status": "error", "message": result["error"]}, status=500)
+        if not rag_result:
+            return Response({"error": "RAG returned no result."}, status=500)
 
-        # --- 4. Database Persistence ---
-        score = float(result.get("compliance_score", 0))
+        if "error" in rag_result:
+            return Response({"error": rag_result["error"]}, status=500)
 
+        fw_result = rag_result.get("results", {}).get(framework_name)
+        
+        # Keep this print statement to monitor raw LLM outputs
+        print("\n\n--- RAW LLM OUTPUT ---")
+        print(json.dumps(fw_result, indent=4) if isinstance(fw_result, dict) else fw_result)
+        print("----------------------\n\n")
+
+        # --- Catch Empty/Malformed Results First ---
+        if not fw_result or not isinstance(fw_result, dict) or len(fw_result) == 0:
+            return Response({
+                "status": "irrelevant",
+                "message": f"The AI could not extract meaningful compliance data. The document is likely not related to {framework_name}.",
+                "framework": framework_name,
+            }, status=422)
+
+        # --- Error Check First ---
+        if "error" in fw_result:
+            err_msg = str(fw_result["error"]).lower()
+            if "irrelevant" in err_msg or "not relevant" in err_msg or "parse failed" in err_msg:
+                 return Response({
+                    "status": "irrelevant",
+                    "message": "The document could not be processed, likely because it does not match expected compliance format.",
+                    "framework": framework_name,
+                }, status=422)
+            
+            return Response({"error": fw_result["error"]}, status=500)
+
+        # --- Relevance Gate (Updated to be smart about missing keys) ---
+        is_relevant = fw_result.get("is_relevant")
+        score = float(fw_result.get("compliance_score", 0))
+
+        # If the LLM forgot the "is_relevant" boolean, but generated a score > 0, it is relevant.
+        if is_relevant is None and score > 0:
+            is_relevant = True
+
+        # Now check if it's explicitly marked false, AND the score is 0
+        if str(is_relevant).lower() in ['false', 'f', '0', 'none'] and score == 0:
+            message = fw_result.get("executive_summary", fw_result.get("summary", 
+                f"The uploaded document does not appear to be related to the {framework_name} framework."
+            ))
+            
+            return Response({
+                "status": "irrelevant",
+                "message": message,
+                "framework": framework_name,
+            }, status=422)
+
+        # --- 4. Persist ComplianceRecord ---
         if score >= 90:
             calc_status = ComplianceRecord.Status.COMPLIANT
         elif score >= 50:
@@ -106,31 +180,32 @@ def match_compliance(request):
         else:
             calc_status = ComplianceRecord.Status.NON_COMPLIANT
 
-        record = ComplianceRecord(
+        record = ComplianceRecord.objects.create(
             user=request.user,
-            assessed_against=framework,
+            assessed_against=framework_obj,
             score=score,
             status=calc_status
         )
 
-        report_json_str = json.dumps(result, indent=4)
-        report_filename = f"audit_report_{record.id}.json"
-        
+        report_json_str = json.dumps(fw_result, indent=4)
+        report_filename = f"audit_{framework_name}_{record.id}.json"
         record.report_path.save(report_filename, ContentFile(report_json_str))
+        record.save()
 
         return Response({
             "status": "success",
-            "record_id": record.id,
+            "record_id": str(record.id),
+            "framework": framework_name,
+            "score": score,
             "calculated_status": calc_status,
             "is_detailed_response": is_detailed,
-            "audit_result": result, 
+            "audit_result": fw_result,
         })
 
     except Exception as e:
         return Response({"error": str(e)}, status=500)
 
     finally:
-        # --- 5. Cleanup ---
         try:
             if os.path.exists(full_temp_path):
                 os.remove(full_temp_path)
@@ -145,46 +220,37 @@ def match_compliance(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_compliance_record(request, record_id):
-    """
-    Retrieves a specific ComplianceRecord by its ID.
-    Reads the associated JSON report file from storage and injects its contents 
-    directly into the API response for the frontend to render.
-    """
     try:
-        # Security: Filter by request.user to prevent unauthorized access to other companies' audits
         record = ComplianceRecord.objects.get(id=record_id, user=request.user)
-        
+
         report_data = None
         if record.report_path:
             try:
-                # Safely open and read the JSON file associated with this record
                 with record.report_path.open('r') as f:
-                    file_content = f.read()
-                    
-                    # Cloud storage backends (like AWS S3) often return bytes instead of strings
-                    if isinstance(file_content, bytes):
-                        file_content = file_content.decode('utf-8')
-                        
-                    report_data = json.loads(file_content)
+                    content = f.read()
+                    if isinstance(content, bytes):
+                        content = content.decode('utf-8')
+                    report_data = json.loads(content)
             except json.JSONDecodeError:
-                report_data = {"error": "The report file exists but is not valid JSON."}
+                report_data = {"error": "Report file exists but is not valid JSON."}
             except Exception as e:
-                report_data = {"error": f"Failed to read report file: {str(e)}"}
+                report_data = {"error": f"Failed to read report: {str(e)}"}
 
-        data = {
-            "id": str(record.id),
-            "framework_title": record.assessed_against.title if record.assessed_against else None,
-            "framework_version": record.assessed_against.version if record.assessed_against else None,
-            "assessment_date": record.assessment_date.isoformat(),
-            "status": record.status,
-            "score": record.score,
-            "report_data": report_data
-        }
-
-        return Response({"status": "success", "data": data})
+        return Response({
+            "status": "success",
+            "data": {
+                "id": str(record.id),
+                "framework_title": record.assessed_against.title if record.assessed_against else None,
+                "framework_version": record.assessed_against.version if record.assessed_against else None,
+                "assessment_date": record.assessment_date.isoformat(),
+                "status": record.status,
+                "score": record.score,
+                "report_data": report_data
+            }
+        })
 
     except ComplianceRecord.DoesNotExist:
-        return Response({"error": "Record not found or you do not have permission to view it."}, status=404)
+        return Response({"error": "Record not found or access denied."}, status=404)
     except ValueError:
         return Response({"error": "Invalid record ID format."}, status=400)
     except Exception as e:
@@ -194,30 +260,22 @@ def get_compliance_record(request, record_id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_user_compliance_records(request):
-    """
-    Returns a lightweight, chronological list of all past compliance audits 
-    for the logged-in user. Ideal for populating user dashboards.
-    """
     try:
         records = ComplianceRecord.objects.filter(user=request.user).order_by('-assessment_date')
-        
-        records_list = [
-            {
-                "id": str(record.id),
-                "framework_title": record.assessed_against.title if record.assessed_against else "Unknown Framework",
-                "score": record.score,
-                "status": record.status,
-                "assessment_date": record.assessment_date.isoformat(),
-            }
-            for record in records
-        ]
-        
         return Response({
             "status": "success",
-            "count": len(records_list),
-            "records": records_list
+            "count": records.count(),
+            "records": [
+                {
+                    "id": str(r.id),
+                    "framework_title": r.assessed_against.title if r.assessed_against else "Unknown",
+                    "score": r.score,
+                    "status": r.status,
+                    "assessment_date": r.assessment_date.isoformat(),
+                }
+                for r in records
+            ]
         })
-        
     except Exception as e:
         return Response({"error": str(e)}, status=500)
 
@@ -225,36 +283,37 @@ def list_user_compliance_records(request):
 # =============================================================================
 # SYSTEM UTILITIES
 # =============================================================================
+
 def _auto_load_frameworks():
-    """
-    Internal helper function to scan the frameworks folder and load PDFs 
-    into the database if it is currently empty.
-    """
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    pdf_dir = os.path.join(base_dir, 'RAG', 'frameworks')
+    frameworks_root = os.path.join(base_dir, 'RAG', 'frameworks')
 
-    if not os.path.exists(pdf_dir):
-        raise FileNotFoundError(f"Frameworks directory not found: {pdf_dir}")
+    if not os.path.exists(frameworks_root):
+        raise FileNotFoundError(f"Frameworks root not found: {frameworks_root}")
 
-    pdf_files = glob.glob(os.path.join(pdf_dir, '*.pdf'))
-    if not pdf_files:
-        raise ValueError(f"No PDFs found in {pdf_dir} to load.")
+    loaded_any = False
 
-    for pdf_path in pdf_files:
-        filename = os.path.basename(pdf_path)
-        title = os.path.splitext(filename)[0] 
-        
-        loader = PyPDFLoader(pdf_path)
-        documents = loader.load()
-        full_text = "\n\n".join([doc.page_content for doc in documents])
-        
-        if not full_text.strip():
+    for fw_name in ComplianceRAG.SUPPORTED_FRAMEWORKS:
+        fw_dir = os.path.join(frameworks_root, fw_name)
+        pdf_files = glob.glob(os.path.join(fw_dir, '*.pdf'))
+
+        if not pdf_files:
+            continue
+
+        full_text_parts = []
+        for pdf_path in pdf_files:
+            docs = PyPDFLoader(pdf_path).load()
+            full_text_parts.extend(doc.page_content for doc in docs)
+
+        full_text = "\n\n".join(full_text_parts).strip()
+        if not full_text:
             continue
 
         Framework.objects.update_or_create(
-            title=title,
-            defaults={
-                'version': '1.0', 
-                'full_content': full_text
-            }
+            title=fw_name,
+            defaults={"version": "1.0", "full_content": full_text}
         )
+        loaded_any = True
+
+    if not loaded_any:
+        raise ValueError(f"No PDFs found under {frameworks_root}/NCA|ECC|SAMA/")

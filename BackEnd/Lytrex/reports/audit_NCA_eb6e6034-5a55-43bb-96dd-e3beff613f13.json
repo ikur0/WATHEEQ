@@ -1,0 +1,26 @@
+{
+    "framework": "NCA",
+    "compliance_score": 55,
+    "executive_summary": "TechCorp's Information Security Policy partially aligns with the National Cryptographic Standards (NCS) framework, demonstrating a moderate level of compliance. The company has correctly implemented some cryptographic standards, such as using AES for symmetric encryption and RSA for asymmetric key exchange. However, several areas of non-compliance were identified, including the use of hardcoded and reused Initialization Vectors (IVs) for stream ciphers, utilization of RSA with a 2048-bit key length for the Moderate zone, and employment of SHA-2 for digital signatures and integrity in the Advanced zone. To achieve full compliance, TechCorp must address these violations and implement the recommended changes.",
+    "compliant_areas": [
+        "Use of AES with a 128-bit key length for symmetric encryption in the Moderate zone (Section 2.1.2 of NCS)",
+        "Utilization of Serpent with a 256-bit key for block ciphers in the Advanced zone (Section 2.1.2 of NCS)",
+        "Employment of Elliptic Curve (ECC) based on NIST P-521 for key agreement in the Advanced zone (Section 2.2 of NCS)"
+    ],
+    "violations": [
+        "Hardcoding and reusing Initialization Vectors (IVs) for stream ciphers, which contradicts the requirement for a unique IV for each key (Section 2.1.1 of NCS)",
+        "Using RSA with a 2048-bit key length for the Moderate zone, which does not meet the minimum requirement of 3072 bits (Section 2.2 of NCS)",
+        "Utilizing SHA-2 (SHA2-384) for digital signatures, which is not accepted for the Advanced zone (Section 2.3 of NCS)",
+        "Employing SHA-2 (SHA2-512/256) for integrity in the Advanced zone, which is not accepted (Section 2.3 of NCS)",
+        "Using SHAKE128 with an output size (d value) of 128 bits, which does not meet the minimum requirement of 256 bits (Section 2.3 of NCS)",
+        "Using SOSEMANUK stream cipher with a 256-bit key for the Advanced zone, which is not accepted for ADVANCED (Section 2.1.1 of NCS)"
+    ],
+    "recommendations": [
+        "Implement a secure random number generator to generate unique Initialization Vectors (IVs) for each stream cipher key",
+        "Upgrade RSA key length to at least 3072 bits for the Moderate zone",
+        "Replace SHA-2 with SHA-3 (SHA3-256 or SHA3-384) for digital signatures and integrity in the Moderate zone",
+        "Replace SHA-2 with SHA-3 (SHA3-512) for digital signatures and integrity in the Advanced zone",
+        "Update SHAKE128 to use an output size (d value) of at least 256 bits",
+        "Replace SOSEMANUK stream cipher with an accepted algorithm, such as SNOW 2.0, for the Advanced zone"
+    ]
+}

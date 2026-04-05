@@ -1,0 +1,22 @@
+{
+    "framework": "NCA",
+    "is_relevant": true,
+    "compliance_score": 85,
+    "executive_summary": "The provided document chunks demonstrate a strong commitment to NCA compliance, with clear policies and procedures in place for cybersecurity governance, risk management, and defense. TechCorp's adherence to NCA standards, such as the use of AES-256 encryption and TLS 1.3, is evident. However, some areas, like the lack of explicit mention of MODERATE and ADVANCED strength levels, may require further clarification to ensure full compliance.",
+    "compliant_areas": [
+        "Cybersecurity Governance (NCA-ECC Subdomain 1-1)",
+        "Cybersecurity Risk Management (NCA-ECC Subdomain 1-3)",
+        "Identity and Access Management (IAM)",
+        "Network Security",
+        "Data and Cryptography Security"
+    ],
+    "violations": [
+        "No explicit mention of MODERATE and ADVANCED strength levels",
+        "No clear documentation of cryptographic key rotation and storage"
+    ],
+    "recommendations": [
+        "Explicitly document the use of MODERATE and ADVANCED strength levels",
+        "Clarify cryptographic key rotation and storage procedures",
+        "Regularly review and update cybersecurity policies and procedures to ensure ongoing NCA compliance"
+    ]
+}

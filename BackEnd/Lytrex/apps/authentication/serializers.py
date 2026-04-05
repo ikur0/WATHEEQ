@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from .models import User, Individual, Organization
 
 # 1. Serializer to view User details (Output only)
@@ -24,15 +26,25 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'username', 'email', 'password', 'user_type',
-            'first_name', 'last_name', 'job_title',      # Individual
-            'company_name', 'industry', 'location'       # Organization
+            'first_name', 'last_name', 'job_title',
+            'company_name', 'industry', 'location'
         ]
+
+    def validate_password(self, value):
+        """
+        Enforces Django's built-in password validators (configured in settings.AUTH_PASSWORD_VALIDATORS).
+        By default this catches: too short, too common, entirely numeric, too similar to username.
+        """
+        try:
+            validate_password(value)
+        except DjangoValidationError as e:
+            raise serializers.ValidationError(e.messages)
+        return value
 
     def create(self, validated_data):
         user_type = validated_data.get('user_type')
         password = validated_data.pop('password')
 
-        # Logic to create the specific child model instance
         if user_type == User.UserType.INDIVIDUAL:
             user = Individual.objects.create(
                 username=validated_data['username'],
