@@ -11,7 +11,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from sentence_transformers import CrossEncoder
 from dotenv import load_dotenv
-from rank_bm25 import BM25Okapi  # <--- Added BM25__
+from rank_bm25 import BM25Okapi  # <--- Added BM25
 load_dotenv()
 class ComplianceRAG:
     """
@@ -31,7 +31,7 @@ class ComplianceRAG:
                  child_chunk_overlap: int = 100,
                  map_chunk_size: int = 4000,      
                  map_chunk_overlap: int = 500,
-                 openai_api_key: Optional[str] = ''):
+                 openai_api_key: Optional[str] = None):
 
         base_dir = os.path.dirname(os.path.abspath(__file__))
         self.pdf_source_dir = os.path.join(base_dir, pdf_source_dir)
@@ -52,14 +52,7 @@ class ComplianceRAG:
         print(f"[INIT] Loading BGE Cross-Encoder Reranker ({reranker_model})...")
         self.reranker = CrossEncoder(reranker_model, max_length=512)
 
-        # FIX 2: Added Seed to guarantee identical LLM generation
-        self.llm = ChatOpenAI(
-            temperature=0, 
-            openai_api_key=o_api_key, 
-            model_name=model_name, 
-            max_tokens=4096,
-            model_kwargs={"seed": 42}
-        )
+        self.llm = ChatOpenAI(temperature=0, openai_api_key=o_api_key, model_name=model_name, max_tokens=4096)
         self.output_parser = JsonOutputParser()
         self._setup_prompts()
 
@@ -212,8 +205,7 @@ class ComplianceRAG:
     # =========================================================================
     def get_framework_full_text(self, framework_name: str) -> str:
         fw_dir = os.path.join(self.pdf_source_dir, framework_name.upper())
-        # FIX 3: Sorted glob to guarantee file order
-        pdf_paths = sorted(glob.glob(os.path.join(fw_dir, "*.pdf")))
+        pdf_paths = glob.glob(os.path.join(fw_dir, "*.pdf"))
         
         if not pdf_paths:
             return ""
@@ -228,10 +220,9 @@ class ComplianceRAG:
     def ingest_single_framework(self, framework_name: str):
         print(f"Creating Hierarchical DB for: {framework_name} using text-embedding-3-large")
         if framework_name.upper() == "ALL":
-            # FIX 3: Sorted glob to guarantee file order
-            pdf_paths = sorted(glob.glob(os.path.join(self.pdf_source_dir, "**", "*.pdf"), recursive=True))
+            pdf_paths = glob.glob(os.path.join(self.pdf_source_dir, "**", "*.pdf"), recursive=True)
         else:
-            pdf_paths = sorted(glob.glob(os.path.join(self.pdf_source_dir, framework_name.upper(), "*.pdf")))
+            pdf_paths = glob.glob(os.path.join(self.pdf_source_dir, framework_name.upper(), "*.pdf"))
         
         if not pdf_paths: return None
         all_docs = []
@@ -274,8 +265,8 @@ class ComplianceRAG:
         vectorstore = self._load_fw_vectorstore(framework_name) or self.ingest_single_framework(framework_name)
         if not vectorstore: return {"error": "Framework not found."}
 
-        # FIX 1: Sorted extraction to prevent random UUID ordering
-        all_docs = sorted(list(vectorstore.docstore._dict.values()), key=lambda x: x.page_content)
+        # Initialize BM25 dynamically from FAISS docstore
+        all_docs = list(vectorstore.docstore._dict.values())
         tokenized_corpus = [self._tokenize(doc.page_content) for doc in all_docs]
         bm25 = BM25Okapi(tokenized_corpus)
 
@@ -393,8 +384,7 @@ class ComplianceRAG:
         """Streamlined version for short text snippets with Hybrid Search and Child-Reranking."""
         vectorstore = self._load_fw_vectorstore(framework_name) or self.ingest_single_framework(framework_name)
         
-        # FIX 1: Sorted extraction to prevent random UUID ordering
-        all_docs = sorted(list(vectorstore.docstore._dict.values()), key=lambda x: x.page_content)
+        all_docs = list(vectorstore.docstore._dict.values())
         tokenized_corpus = [self._tokenize(doc.page_content) for doc in all_docs]
         bm25 = BM25Okapi(tokenized_corpus)
 

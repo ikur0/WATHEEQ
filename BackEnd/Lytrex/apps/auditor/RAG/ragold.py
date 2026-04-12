@@ -11,12 +11,11 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from sentence_transformers import CrossEncoder
 from dotenv import load_dotenv
-from rank_bm25 import BM25Okapi  # <--- Added BM25__
-load_dotenv()
+
 class ComplianceRAG:
     """
-    Elite Lytrex Compliance RAG with Hybrid Retrieval.
-    Architecture: OpenAI Embeddings + BM25 -> Union -> BGE Reranker (on Children) -> GPT-4o (on Parents).
+    Elite Lytrex Compliance RAG with Two-Stage Retrieval.
+    Architecture: OpenAI Embeddings -> FAISS (Top 20) -> BGE Reranker (Top K) -> GPT-4o.
     """
 
     def __init__(self,
@@ -25,13 +24,13 @@ class ComplianceRAG:
                  embedding_model: str = "text-embedding-3-large", 
                  model_name: str = "gpt-4o",
                  reranker_model: str = "BAAI/bge-reranker-base", 
-                 parent_chunk_size: int = 2500,   
-                 parent_chunk_overlap: int = 250,
-                 child_chunk_size: int = 500,     
-                 child_chunk_overlap: int = 100,
+                 parent_chunk_size: int = 8000,   
+                 parent_chunk_overlap: int = 800,
+                 child_chunk_size: int = 800,     
+                 child_chunk_overlap: int = 150,
                  map_chunk_size: int = 4000,      
                  map_chunk_overlap: int = 500,
-                 openai_api_key: Optional[str] = ''):
+                 openai_api_key: Optional[str] = None):
 
         base_dir = os.path.dirname(os.path.abspath(__file__))
         self.pdf_source_dir = os.path.join(base_dir, pdf_source_dir)
@@ -52,14 +51,7 @@ class ComplianceRAG:
         print(f"[INIT] Loading BGE Cross-Encoder Reranker ({reranker_model})...")
         self.reranker = CrossEncoder(reranker_model, max_length=512)
 
-        # FIX 2: Added Seed to guarantee identical LLM generation
-        self.llm = ChatOpenAI(
-            temperature=0, 
-            openai_api_key=o_api_key, 
-            model_name=model_name, 
-            max_tokens=4096,
-            model_kwargs={"seed": 42}
-        )
+        self.llm = ChatOpenAI(temperature=0, openai_api_key=o_api_key, model_name=model_name, max_tokens=4096)
         self.output_parser = JsonOutputParser()
         self._setup_prompts()
 
@@ -194,10 +186,6 @@ class ComplianceRAG:
         if len(text) > max_chars: return text[:max_chars] + "\n... [TRUNCATED FOR TOKEN LIMIT] ..."
         return text
 
-    def _tokenize(self, text: str) -> List[str]:
-        """Simple whitespace tokenizer for BM25."""
-        return text.lower().replace("\n", " ").split(" ")
-
     def _get_fw_db_path(self, framework_name: str) -> str:
         return os.path.join(self.vector_db_base_path, framework_name.upper())
 
@@ -208,12 +196,12 @@ class ComplianceRAG:
         return None
 
     # =========================================================================
-    # FRAMEWORK PARSING UTILITIES
+    # FRAMEWORK PARSING UTILITIES (Offloaded from views.py)
     # =========================================================================
     def get_framework_full_text(self, framework_name: str) -> str:
+        """Parses framework PDFs directly so Django views.py doesn't have to."""
         fw_dir = os.path.join(self.pdf_source_dir, framework_name.upper())
-        # FIX 3: Sorted glob to guarantee file order
-        pdf_paths = sorted(glob.glob(os.path.join(fw_dir, "*.pdf")))
+        pdf_paths = glob.glob(os.path.join(fw_dir, "*.pdf"))
         
         if not pdf_paths:
             return ""
@@ -228,10 +216,9 @@ class ComplianceRAG:
     def ingest_single_framework(self, framework_name: str):
         print(f"Creating Hierarchical DB for: {framework_name} using text-embedding-3-large")
         if framework_name.upper() == "ALL":
-            # FIX 3: Sorted glob to guarantee file order
-            pdf_paths = sorted(glob.glob(os.path.join(self.pdf_source_dir, "**", "*.pdf"), recursive=True))
+            pdf_paths = glob.glob(os.path.join(self.pdf_source_dir, "**", "*.pdf"), recursive=True)
         else:
-            pdf_paths = sorted(glob.glob(os.path.join(self.pdf_source_dir, framework_name.upper(), "*.pdf")))
+            pdf_paths = glob.glob(os.path.join(self.pdf_source_dir, framework_name.upper(), "*.pdf"))
         
         if not pdf_paths: return None
         all_docs = []
@@ -274,11 +261,6 @@ class ComplianceRAG:
         vectorstore = self._load_fw_vectorstore(framework_name) or self.ingest_single_framework(framework_name)
         if not vectorstore: return {"error": "Framework not found."}
 
-        # FIX 1: Sorted extraction to prevent random UUID ordering
-        all_docs = sorted(list(vectorstore.docstore._dict.values()), key=lambda x: x.page_content)
-        tokenized_corpus = [self._tokenize(doc.page_content) for doc in all_docs]
-        bm25 = BM25Okapi(tokenized_corpus)
-
         documents = PyPDFLoader(target_pdf_path).load()
         section_splitter = RecursiveCharacterTextSplitter(chunk_size=self.map_chunk_size, chunk_overlap=self.map_chunk_overlap)
         sections = section_splitter.split_documents(documents)
@@ -292,51 +274,19 @@ class ComplianceRAG:
         print(f"\n[LYTREX] Processing {len(sections)} sections ({mode_str})...")
 
         for i, section in enumerate(sections, 1):
-            # 1. Hybrid Search (FAISS + BM25)
-            faiss_results = vectorstore.similarity_search(section.page_content, k=k*5)
+            results = vectorstore.similarity_search(section.page_content, k=k*5)
+            unique_parents = list(dict.fromkeys([res.metadata.get("parent_content", res.page_content) for res in results]))
             
-            tokenized_query = self._tokenize(section.page_content)
-            bm25_results = bm25.get_top_n(tokenized_query, all_docs, n=k*5)
-            
-            combined_children = faiss_results + bm25_results
+            if not unique_parents: continue
 
-            # Deduplicate child chunks based on their text
-            unique_children_map = {}
-            for child in combined_children:
-                if child.page_content not in unique_children_map:
-                    unique_children_map[child.page_content] = child
-
-            unique_children = list(unique_children_map.values())
-            if not unique_children: continue
-
-            # 2. Rerank CHILD chunks directly (prevents BGE 512 token limit truncation)
-            pairs = [[section.page_content, child.page_content] for child in unique_children]
+            pairs = [[section.page_content, parent] for parent in unique_parents]
             scores = self.reranker.predict(pairs)
             
-            # Sort children by score
-            scored_children = sorted(zip(scores, unique_children), key=lambda x: x[0], reverse=True)
-            top_k_children = [child for score, child in scored_children[:k]]
-            
-            # 3. Extract the full PARENT chunks only for the winning children
-            unique_parents = []
-            parent_meta_map = {}
-            for child in top_k_children:
-                parent_text = child.metadata.get("parent_content", child.page_content)
-                if parent_text not in parent_meta_map:
-                    fw_page = child.metadata.get("page", 0) + 1
-                    fw_source = os.path.basename(child.metadata.get("source", "Framework"))
-                    tagged_fw_text = f"--- FRAMEWORK SOURCE: {fw_source} | PAGE: {fw_page} ---\n{parent_text}"
-                    parent_meta_map[parent_text] = tagged_fw_text
-                    unique_parents.append(parent_text)
-            
-            formatted_context = "\n\n---\n\n".join([parent_meta_map[p] for p in unique_parents])
+            ranked_parents = [doc for _, doc in sorted(zip(scores, unique_parents), reverse=True)][:k]
+            formatted_context = "\n\n---\n\n".join(ranked_parents)
             
             if not evaluate_llm:
-                # Save BOTH the Query and Context for beautiful console formatting
-                raw_retrieval_log[f"Section_{i}"] = {
-                    "query": section.page_content,
-                    "context": formatted_context
-                }
+                raw_retrieval_log[f"Section_{i}"] = formatted_context
                 print(f"  -> Section {i}: Context retrieved and reranked successfully.")
                 continue
                 
@@ -364,11 +314,18 @@ class ComplianceRAG:
     # THE API BRIDGE METHOD (Called by views.py)
     # =========================================================================
     def check_compliance(self, target_pdf_path: str, framework_name: str, k: int = 10, detailed: bool = False) -> Dict[str, Any]:
+        """
+        Wrapper method designed specifically to connect with Django views.py.
+        Includes a Relevance Gate to reject non-policy documents.
+        """
+        # 1. Quick File Load for Gatekeeping
         try:
             docs = PyPDFLoader(target_pdf_path).load()
             if not docs: return {"error": "Uploaded PDF is empty or unreadable."}
             
+            # Check first 3000 chars of document for relevance
             first_page_text = docs[0].page_content[:3000] 
+            
             gate_chain = self.relevance_prompt | self.llm | self.output_parser
             gate_result = gate_chain.invoke({"text": first_page_text})
             
@@ -380,6 +337,7 @@ class ComplianceRAG:
         except Exception as e:
             print(f"[Warning] Relevance Gate failed, proceeding to audit: {str(e)}")
 
+        # 2. Proceed to full Map-Reduce Audit
         summary_mode = not detailed
         return self.audit_large_document(
             target_pdf_path=target_pdf_path,
@@ -390,46 +348,16 @@ class ComplianceRAG:
         )
 
     def check_compliance_text(self, text: str, framework_name: str, k: int = 4, summary_mode: bool = False, evaluate_llm: bool = True) -> Dict[str, Any]:
-        """Streamlined version for short text snippets with Hybrid Search and Child-Reranking."""
+        """Streamlined version for short text snippets (CLI testing)."""
         vectorstore = self._load_fw_vectorstore(framework_name) or self.ingest_single_framework(framework_name)
+        results = vectorstore.similarity_search(text, k=k*5)
+        unique_parents = list(dict.fromkeys([res.metadata.get("parent_content", res.page_content) for res in results]))
         
-        # FIX 1: Sorted extraction to prevent random UUID ordering
-        all_docs = sorted(list(vectorstore.docstore._dict.values()), key=lambda x: x.page_content)
-        tokenized_corpus = [self._tokenize(doc.page_content) for doc in all_docs]
-        bm25 = BM25Okapi(tokenized_corpus)
-
-        faiss_results = vectorstore.similarity_search(text, k=k*5)
-        tokenized_query = self._tokenize(text)
-        bm25_results = bm25.get_top_n(tokenized_query, all_docs, n=k*5)
-
-        combined_children = faiss_results + bm25_results
-
-        unique_children_map = {}
-        for child in combined_children:
-            if child.page_content not in unique_children_map:
-                unique_children_map[child.page_content] = child
-
-        unique_children = list(unique_children_map.values())
-        
-        if unique_children:
-            pairs = [[text, child.page_content] for child in unique_children]
+        if unique_parents:
+            pairs = [[text, parent] for parent in unique_parents]
             scores = self.reranker.predict(pairs)
-            
-            scored_children = sorted(zip(scores, unique_children), key=lambda x: x[0], reverse=True)
-            top_k_children = [child for score, child in scored_children[:k]]
-            
-            unique_parents = []
-            parent_meta_map = {}
-            for child in top_k_children:
-                parent_text = child.metadata.get("parent_content", child.page_content)
-                if parent_text not in parent_meta_map:
-                    fw_page = child.metadata.get("page", 0) + 1
-                    fw_source = os.path.basename(child.metadata.get("source", "Framework"))
-                    tagged_fw_text = f"--- FRAMEWORK SOURCE: {fw_source} | PAGE: {fw_page} ---\n{parent_text}"
-                    parent_meta_map[parent_text] = tagged_fw_text
-                    unique_parents.append(parent_text)
-                    
-            context = "\n\n---\n\n".join([parent_meta_map[p] for p in unique_parents])
+            ranked_parents = [doc for _, doc in sorted(zip(scores, unique_parents), reverse=True)][:k]
+            context = "\n\n---\n\n".join(ranked_parents)
         else:
             context = ""
         
