@@ -1,2 +1,13 @@
 venv/
 .vscode/
+db.sqlite3
+
+# Ignore the generated Reports folder and all its contents
+reports/
+
+# Ignore the FAISS Vector Database folder
+LytrexDB_OpenAI/
+
+# Ignore generic vector DB file extensions (just to be safe)
+*.faiss
+*.pkl

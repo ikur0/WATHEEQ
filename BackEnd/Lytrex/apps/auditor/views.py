@@ -1,6 +1,5 @@
 import os
 import json
-import glob
 
 from django.core.files.storage import default_storage
 from django.core.files.base import ContentFile
@@ -9,9 +8,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from langchain_community.document_loaders import PyPDFLoader
-
-from .RAG.main import ComplianceRAG
+# Import directly from the renamed rag.py file
+from .RAG.rag import ComplianceRAG
 from .models import Framework, ComplianceRecord
 
 
@@ -38,7 +36,7 @@ def doc(request):
                 "auth_required": True,
                 "params": {
                     "file": "PDF file to be audited (Multipart form-data).",
-                    "framework_id": "ID of the Framework being assessed against (Required). 1 --> ECC.  2 --> NCA.  3 --> SAMA",
+                    "framework_id": "ID or Name of the Framework being assessed against (Required). e.g., 2 or 'NCA'.",
                     "detailed": "Optional boolean (true/false). Defaults to false for concise prompt."
                 },
                 "action": "Checks compliance against the selected framework. Saves a ComplianceRecord to the DB.",
@@ -76,21 +74,28 @@ def match_compliance(request):
     if not uploaded_file:
         return Response({"error": "No file uploaded. Send a PDF with key 'file'."}, status=400)
 
+    # Allow either integer ID or string name for framework_id
     framework_id_raw = request.data.get("framework_id")
     if not framework_id_raw:
         return Response({"error": "Missing 'framework_id' in request body."}, status=400)
 
-    try:
-        framework_id = int(framework_id_raw)
-    except ValueError:
-        return Response({"error": "'framework_id' must be an integer."}, status=400)
+    fw_input = str(framework_id_raw).strip().upper()
 
-    framework_name = FRAMEWORK_ID_MAP.get(framework_id)
+    if fw_input in FRAMEWORK_ID_MAP.values():
+        framework_name = fw_input
+    else:
+        try:
+            framework_id = int(fw_input)
+            framework_name = FRAMEWORK_ID_MAP.get(framework_id)
+        except ValueError:
+            return Response({"error": "'framework_id' must be an integer ID (1,2,3) or a valid name (ECC, NCA, SAMA)."}, status=400)
+
     if not framework_name:
         return Response({
-            "error": f"Invalid framework_id '{framework_id}'. Valid options: 1=ECC, 2=NCA, 3=SAMA"
+            "error": f"Invalid framework '{fw_input}'. Valid options: 1=ECC, 2=NCA, 3=SAMA"
         }, status=400)
 
+    # Check if framework is in DB
     framework_obj = Framework.objects.filter(title__iexact=framework_name).first()
     if not framework_obj:
         try:
@@ -114,23 +119,21 @@ def match_compliance(request):
         # --- 3. Run RAG ---
         rag = ComplianceRAG()
         
-        # Matches the updated main.py signature: check_compliance(target_pdf_path, k, detailed)
+        # Calls the wrapper method in rag.py
         fw_result = rag.check_compliance(
             target_pdf_path=full_temp_path,
-            k=5,
+            framework_name=framework_name, 
+            k=10, 
             detailed=is_detailed
         )
 
-        # Catch empty or completely failed execution
         if not fw_result:
             return Response({"error": "The AI returned an empty response."}, status=500)
 
         # --- Error & Relevance Check ---
-        # Matches the error dictionaries returned by the new main.py
         if "error" in fw_result:
             err_msg = fw_result["error"]
             
-            # Catch the specific Relevance Gate rejection from main.py
             if "Document Rejected" in err_msg:
                 return Response({
                     "status": "irrelevant",
@@ -139,11 +142,11 @@ def match_compliance(request):
                     "framework": framework_name
                 }, status=422)
             
-            # Standard hard failures (e.g., file not found, json parse failed)
             return Response({"error": err_msg}, status=500)
 
         # --- 4. Persist ComplianceRecord ---
-        score = float(fw_result.get("compliance_score", 0))
+        # Maps final JSON keys from the Master Report output
+        score = float(fw_result.get("final_compliance_score", 0))
 
         if score >= 90:
             calc_status = ComplianceRecord.Status.COMPLIANT
@@ -159,6 +162,7 @@ def match_compliance(request):
             status=calc_status
         )
 
+        # Save the full audit report as a JSON file
         report_json_str = json.dumps(fw_result, indent=4)
         report_filename = f"audit_{framework_name}_{record.id}.json"
         record.report_path.save(report_filename, ContentFile(report_json_str))
@@ -178,6 +182,7 @@ def match_compliance(request):
         return Response({"error": str(e)}, status=500)
 
     finally:
+        # Clean up temp file
         try:
             if os.path.exists(full_temp_path):
                 os.remove(full_temp_path)
@@ -257,27 +262,17 @@ def list_user_compliance_records(request):
 # =============================================================================
 
 def _auto_load_frameworks():
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    frameworks_root = os.path.join(base_dir, 'RAG', 'frameworks')
-
-    if not os.path.exists(frameworks_root):
-        raise FileNotFoundError(f"Frameworks root not found: {frameworks_root}")
-
+    """
+    Asks the RAG engine to parse the PDFs and return the text, 
+    keeping the Langchain PyPDFLoader logic completely out of Django.
+    """
+    rag = ComplianceRAG()
     loaded_any = False
 
-    for fw_name in ComplianceRAG.SUPPORTED_FRAMEWORKS:
-        fw_dir = os.path.join(frameworks_root, fw_name)
-        pdf_files = glob.glob(os.path.join(fw_dir, '*.pdf'))
-
-        if not pdf_files:
-            continue
-
-        full_text_parts = []
-        for pdf_path in pdf_files:
-            docs = PyPDFLoader(pdf_path).load()
-            full_text_parts.extend(doc.page_content for doc in docs)
-
-        full_text = "\n\n".join(full_text_parts).strip()
+    for fw_name in ["ECC", "NCA", "SAMA"]:
+        # Let the RAG engine handle the file reading
+        full_text = rag.get_framework_full_text(fw_name)
+        
         if not full_text:
             continue
 
@@ -288,4 +283,4 @@ def _auto_load_frameworks():
         loaded_any = True
 
     if not loaded_any:
-        raise ValueError(f"No PDFs found under {frameworks_root}/NCA|ECC|SAMA/")
+        raise ValueError("No PDFs found under RAG/frameworks/ for ECC, NCA, or SAMA.")
