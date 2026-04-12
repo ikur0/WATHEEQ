@@ -11,7 +11,6 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from sentence_transformers import CrossEncoder
 from dotenv import load_dotenv
-load_dotenv()
 
 class ComplianceRAG:
     """
