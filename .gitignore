@@ -11,3 +11,7 @@ LytrexDB_OpenAI/
 # Ignore generic vector DB file extensions (just to be safe)
 *.faiss
 *.pkl
+
+.env
+.env.*
+*.env
