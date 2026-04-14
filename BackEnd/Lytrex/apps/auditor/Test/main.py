@@ -32,6 +32,11 @@ def main():
             print("Invalid choice. Please try again.")
             continue
 
+        if choice == '1':
+            print("\n[!] Notice: The current ComplianceRAG class uses PyPDFLoader, which requires PDF files.")
+            print("Please use Option 2 to process documents via file path.")
+            continue
+
         # Get Framework
         print("\nSelect Framework to assess against:")
         print("Options: NCA, ECC, SAMA, or ALL (To search across everything)")
@@ -40,28 +45,12 @@ def main():
             framework = "ALL"
 
         result_data = None
-
-        # ---------------------------------------------
-        # OPTION 1: TEXT INPUT
-        # ---------------------------------------------
-        if choice == '1':
-            text_input = input("\nEnter the text you want to test:\n> ")
-            if not text_input.strip():
-                print("Empty text provided. Restarting loop.")
-                continue
-                
-            # Run RAG but pause before LLM (run_llm=False)
-            result_data = rag.check_compliance_text(
-                text=text_input, 
-                framework_name=framework,
-                k=5,
-                run_llm=False # Stops after printing context
-            )
+        selected_file = None
 
         # ---------------------------------------------
         # OPTION 2: FILE INPUT
         # ---------------------------------------------
-        elif choice == '2':
+        if choice == '2':
             pdf_files = glob.glob(os.path.join(files_dir, "*.pdf"))
             if not pdf_files:
                 print(f"\n[!] No PDF files found in the '{files_dir}' folder.")
@@ -84,17 +73,28 @@ def main():
                 print("Invalid file selection. Restarting loop.")
                 continue
 
-            print(f"\nProcessing {os.path.basename(selected_file)}...")
+            # ---------------------------------------------
+            # PREFERENCES: MODE & CONTEXT VIEW
+            # ---------------------------------------------
+            print("\n" + "-"*50)
+            print("Select Audit Mode:")
+            print("(1) Detailed (Comprehensive section-by-section analysis)")
+            print("(2) Summary (Strict top-level overview)")
+            mode_choice = input("Choice (1/2): ").strip()
+            is_detailed = (mode_choice != '2') # Defaults to detailed unless 2 is explicitly chosen
+
+            print(f"\nRunning retrieval phase for {os.path.basename(selected_file)}...")
             
-            # Run RAG but pause before LLM (run_llm=False)
-            result_data = rag.check_compliance(
+            # Run RAG but pause before LLM by directly calling audit_large_document with evaluate_llm=False
+            result_data = rag.audit_large_document(
                 target_pdf_path=selected_file, 
                 framework_name=framework, 
-                run_llm=False # Stops after printing context
+                summary_mode=not is_detailed,
+                evaluate_llm=False # Stops after fetching context
             )
 
         # ---------------------------------------------
-        # ERROR HANDLING & LLM EXECUTION
+        # ERROR HANDLING & RESULTS DISPLAY
         # ---------------------------------------------
         if result_data and "error" in result_data:
             print(f"\n[ERROR] {result_data['error']}")
@@ -103,19 +103,39 @@ def main():
         if not result_data:
             continue
 
-        # LLM Prompt Phase
         print("\n" + "="*50)
-        print("Wanna pass it to LLM?")
+        print("Retrieval phase complete!")
+        
+        view_ctx = input("Do you want to view the retrieved contexts before deciding on LLM execution? (y/n): ").strip().lower()
+        if view_ctx == 'y':
+            raw_results = result_data.get("raw_retrieval_results", {})
+            if not raw_results:
+                print("\n[!] No contexts retrieved.")
+            else:
+                for section_name, data in raw_results.items():
+                    print(f"\n\n{'='*20} {section_name.upper()} {'='*20}")
+                    print("\n[COMPANY CHUNK]:")
+                    print(data.get('query', 'N/A'))
+                    print("\n[MATCHED FRAMEWORK CONTEXT]:")
+                    print(data.get('context', 'N/A'))
+                print("\n" + "="*50)
+
+        # ---------------------------------------------
+        # LLM EXECUTION PHASE
+        # ---------------------------------------------
+        print("\nWanna pass it to LLM for final audit?")
         print("(1) Yes")
         print("(2) No")
         llm_choice = input("Choice: ").strip()
 
         if llm_choice == '1':
-            formatted_ctx = result_data["formatted_context"]
-            company_doc = result_data["company_doc"]
-            
-            # Manually trigger the LLM evaluation
-            final_result = rag.evaluate_with_llm(formatted_ctx, company_doc, detailed=True)
+            print(f"\nTriggering Full LLM Audit in {'Detailed' if is_detailed else 'Summary'} mode... This may take a moment.")
+            # Run the primary API bridge method, which evaluates relevance and runs the LLM
+            final_result = rag.check_compliance(
+                target_pdf_path=selected_file,
+                framework_name=framework,
+                detailed=is_detailed
+            )
             
             print("\n" + "="*50)
             print("FINAL LLM AUDIT RESPONSE:")
@@ -123,7 +143,6 @@ def main():
             print(json.dumps(final_result, indent=4))
         else:
             print("Skipping LLM execution. Returning to main menu.")
-
 
 if __name__ == "__main__":
     main()

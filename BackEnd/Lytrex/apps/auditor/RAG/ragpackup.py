@@ -1,3 +1,28 @@
+"""
+The rag4.py Pipeline Flow
+The Input (Chunking): You upload a 50-page PDF. RecursiveCharacterTextSplitter chops this massive document into smaller, manageable pieces (roughly 4,000 characters each). The system grabs Section 1 and starts the loop.
+
+Hybrid Search (The Dragnet):
+Section 1 is sent to the vector database.
+
+FAISS uses OpenAI embeddings to find the top 20 framework rules that share the same meaning or concept as Section 1.
+
+BM25 scans the exact words in Section 1 and finds the top 20 framework rules that contain the exact same keywords or acronyms.
+
+Deduplication (The Filter):
+The results from FAISS and BM25 are dumped into a single list. The Python dictionary logic (unique_children_map) scans this list and deletes any identical duplicates, leaving a clean list of unique framework rules.
+
+Cross-Encoder Reranking (The Judge):
+The clean list of rules is paired with Section 1 and sent to the bge-reranker-base model. Because we are sending the small 500-character "Child" chunks, the reranker can read them perfectly. It scores every pair from 0.0 to 1.0 based on absolute relevance, and we keep only the top K (e.g., the top 4).
+
+Context Assembly (The Expansion):
+For those top 4 winning child chunks, the system looks up their hidden metadata and pulls their massive 2,500-character "Parent" chunks. It staples the Framework Page Numbers to the top of them and combines them into one giant Context string.
+
+LLM Auditing (The Verdict):
+GPT-4o receives Section 1 (tagged with its document page number) and the giant Framework Context string. Following the strict dual-citation prompt, it writes the JSON report detailing the violations, gaps, and scores.
+
+"""
+
 import os
 import glob
 import json
@@ -12,7 +37,9 @@ from langchain_core.output_parsers import JsonOutputParser
 from sentence_transformers import CrossEncoder
 from dotenv import load_dotenv
 from rank_bm25 import BM25Okapi  # <--- Added BM25
+
 load_dotenv()
+
 class ComplianceRAG:
     """
     Elite Lytrex Compliance RAG with Hybrid Retrieval.
@@ -29,9 +56,9 @@ class ComplianceRAG:
                  parent_chunk_overlap: int = 250,
                  child_chunk_size: int = 500,     
                  child_chunk_overlap: int = 100,
-                 map_chunk_size: int = 4000,      
-                 map_chunk_overlap: int = 500,
-                 openai_api_key: Optional[str] = None):
+                 map_chunk_size: int = 1000,      
+                 map_chunk_overlap: int = 250,
+                 openai_api_key: Optional[str] = ''):
 
         base_dir = os.path.dirname(os.path.abspath(__file__))
         self.pdf_source_dir = os.path.join(base_dir, pdf_source_dir)
@@ -52,7 +79,13 @@ class ComplianceRAG:
         print(f"[INIT] Loading BGE Cross-Encoder Reranker ({reranker_model})...")
         self.reranker = CrossEncoder(reranker_model, max_length=512)
 
-        self.llm = ChatOpenAI(temperature=0, openai_api_key=o_api_key, model_name=model_name, max_tokens=4096)
+        self.llm = ChatOpenAI(
+            temperature=0, 
+            openai_api_key=o_api_key, 
+            model_name=model_name, 
+            max_tokens=4096,
+            model_kwargs={"seed": 42}
+        )
         self.output_parser = JsonOutputParser()
         self._setup_prompts()
 
@@ -180,6 +213,8 @@ class ComplianceRAG:
                 "master_summary": "A strict 1-2 sentence overall summary.",
                 "all_unique_key_issues": ["Merged list of top critical issues"]
             }}
+
+            hey don't be strict, we don't want to miss anything
             """
         )
 
@@ -205,7 +240,7 @@ class ComplianceRAG:
     # =========================================================================
     def get_framework_full_text(self, framework_name: str) -> str:
         fw_dir = os.path.join(self.pdf_source_dir, framework_name.upper())
-        pdf_paths = glob.glob(os.path.join(fw_dir, "*.pdf"))
+        pdf_paths = sorted(glob.glob(os.path.join(fw_dir, "*.pdf")))
         
         if not pdf_paths:
             return ""
@@ -220,9 +255,9 @@ class ComplianceRAG:
     def ingest_single_framework(self, framework_name: str):
         print(f"Creating Hierarchical DB for: {framework_name} using text-embedding-3-large")
         if framework_name.upper() == "ALL":
-            pdf_paths = glob.glob(os.path.join(self.pdf_source_dir, "**", "*.pdf"), recursive=True)
+            pdf_paths = sorted(glob.glob(os.path.join(self.pdf_source_dir, "**", "*.pdf"), recursive=True))
         else:
-            pdf_paths = glob.glob(os.path.join(self.pdf_source_dir, framework_name.upper(), "*.pdf"))
+            pdf_paths = sorted(glob.glob(os.path.join(self.pdf_source_dir, framework_name.upper(), "*.pdf")))
         
         if not pdf_paths: return None
         all_docs = []
@@ -265,8 +300,7 @@ class ComplianceRAG:
         vectorstore = self._load_fw_vectorstore(framework_name) or self.ingest_single_framework(framework_name)
         if not vectorstore: return {"error": "Framework not found."}
 
-        # Initialize BM25 dynamically from FAISS docstore
-        all_docs = list(vectorstore.docstore._dict.values())
+        all_docs = sorted(list(vectorstore.docstore._dict.values()), key=lambda x: x.page_content)
         tokenized_corpus = [self._tokenize(doc.page_content) for doc in all_docs]
         bm25 = BM25Okapi(tokenized_corpus)
 
@@ -314,6 +348,7 @@ class ComplianceRAG:
             for child in top_k_children:
                 parent_text = child.metadata.get("parent_content", child.page_content)
                 if parent_text not in parent_meta_map:
+                    # Explicitly inject Framework Page & Source Metadata
                     fw_page = child.metadata.get("page", 0) + 1
                     fw_source = os.path.basename(child.metadata.get("source", "Framework"))
                     tagged_fw_text = f"--- FRAMEWORK SOURCE: {fw_source} | PAGE: {fw_page} ---\n{parent_text}"
@@ -322,16 +357,21 @@ class ComplianceRAG:
             
             formatted_context = "\n\n---\n\n".join([parent_meta_map[p] for p in unique_parents])
             
+            # Explicitly inject Company Document Page & Source Metadata
+            actual_doc_page = section.metadata.get("page", 0) + 1
+            doc_source = os.path.basename(section.metadata.get("source", "Company Document"))
+            chunk_with_metadata = f"--- COMPANY DOCUMENT | FILE: {doc_source} | PAGE: {actual_doc_page} ---\n{section.page_content}"
+
             if not evaluate_llm:
-                # Save BOTH the Query and Context for beautiful console formatting
                 raw_retrieval_log[f"Section_{i}"] = {
-                    "query": section.page_content,
+                    "query": chunk_with_metadata,
                     "context": formatted_context
                 }
                 print(f"  -> Section {i}: Context retrieved and reranked successfully.")
                 continue
                 
-            report = self.evaluate_with_llm(formatted_context, section.page_content, summary_mode)
+            # Pass the tagged metadata string, NOT the raw page_content
+            report = self.evaluate_with_llm(formatted_context, chunk_with_metadata, summary_mode)
             
             if "error" not in report:
                 all_reports.append(report)
@@ -384,7 +424,7 @@ class ComplianceRAG:
         """Streamlined version for short text snippets with Hybrid Search and Child-Reranking."""
         vectorstore = self._load_fw_vectorstore(framework_name) or self.ingest_single_framework(framework_name)
         
-        all_docs = list(vectorstore.docstore._dict.values())
+        all_docs = sorted(list(vectorstore.docstore._dict.values()), key=lambda x: x.page_content)
         tokenized_corpus = [self._tokenize(doc.page_content) for doc in all_docs]
         bm25 = BM25Okapi(tokenized_corpus)
 
@@ -413,6 +453,7 @@ class ComplianceRAG:
             for child in top_k_children:
                 parent_text = child.metadata.get("parent_content", child.page_content)
                 if parent_text not in parent_meta_map:
+                    # Explicitly inject Framework Page & Source Metadata
                     fw_page = child.metadata.get("page", 0) + 1
                     fw_source = os.path.basename(child.metadata.get("source", "Framework"))
                     tagged_fw_text = f"--- FRAMEWORK SOURCE: {fw_source} | PAGE: {fw_page} ---\n{parent_text}"
@@ -424,4 +465,8 @@ class ComplianceRAG:
             context = ""
         
         if not evaluate_llm: return {"retrieved_framework_context": context}
-        return self.evaluate_with_llm(context, text, summary_mode)
+        
+        # Explicitly inject mock Company Document Metadata for text snippets
+        chunk_with_metadata = f"--- COMPANY DOCUMENT | FILE: Text Snippet | PAGE: N/A ---\n{text}"
+        
+        return self.evaluate_with_llm(context, chunk_with_metadata, summary_mode)
