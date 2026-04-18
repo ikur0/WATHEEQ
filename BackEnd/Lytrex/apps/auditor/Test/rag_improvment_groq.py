@@ -41,13 +41,15 @@ LLM (Final Evaluation / Executive Summary)
  ↓
 Final JSON Output
 """
+
 import os
 import glob
 import json
 import re
 from typing import Optional, Dict, Any, List
 
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_groq import ChatGroq
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -63,18 +65,18 @@ load_dotenv()
 class ComplianceRAG:
     """
     Elite Lytrex Compliance RAG with Structural Hybrid Retrieval.
-    Architecture: JSON-Structured Parents -> Child Chunks -> FAISS+BM25 -> Reranker -> GPT-4o.
+    Architecture: JSON-Structured Parents -> Child Chunks -> FAISS+BM25 -> Reranker -> Llama-3.1-70b (Groq).
     """
 
     def __init__(self,
                  # Directory containing the source framework files (PDFs/JSONs)
                  pdf_source_dir: str = "frameworks",
                  # Base path where the FAISS vector database will be saved/loaded
-                 vector_db_base_path: str = "LytrexDB_OpenAI", 
-                 # The OpenAI embedding model used to vectorize the text
-                 embedding_model: str = "text-embedding-3-large", 
-                 # The OpenAI LLM used for auditing and evaluation
-                 model_name: str = "gpt-4o",
+                 vector_db_base_path: str = "LytrexDB_Groq", 
+                 # BGE Large is highly accurate and free (runs locally via HuggingFace)
+                 embedding_model: str = "BAAI/bge-large-en-v1.5", 
+                 # Llama 3.1 70B is incredible for complex reasoning and JSON, and blazing fast on Groq
+                 model_name: str = "llama-3.3-70b-versatile",
                  # The Cross-Encoder model used to rerank retrieved candidates
                  reranker_model: str = "BAAI/bge-reranker-base", 
                  # Character size for the larger parent context chunks
@@ -93,8 +95,8 @@ class ComplianceRAG:
                  section_chunk_size: int = 200,    
                  # Character overlap for the target document micro-queries
                  section_chunk_overlap: int = 20,  
-                 # Optional explicit API key; if not provided, it will look for OPENAI_API_KEY in the .env file
-                 openai_api_key: Optional[str] = ''):
+                 # Optional explicit API key; if not provided, it will look for GROQ_API_KEY in the .env file
+                 groq_api_key: Optional[str] = ''):
 
         base_dir = os.path.dirname(os.path.abspath(__file__))
         self.pdf_source_dir = os.path.join(base_dir, pdf_source_dir)
@@ -108,20 +110,19 @@ class ComplianceRAG:
         self.section_chunk_size = section_chunk_size
         self.section_chunk_overlap = section_chunk_overlap
 
-        o_api_key = openai_api_key or os.getenv("OPENAI_API_KEY")
-        if not o_api_key: raise ValueError("OPENAI_API_KEY missing. Please check your .env file.")
+        g_api_key = groq_api_key or os.getenv("GROQ_API_KEY")
+        if not g_api_key: raise ValueError("GROQ_API_KEY missing. Please check your .env file.")
         
-        self.embeddings = OpenAIEmbeddings(model=embedding_model, openai_api_key=o_api_key)
+        print(f"[INIT] Loading Local HuggingFace Embeddings ({embedding_model})...")
+        self.embeddings = HuggingFaceEmbeddings(model_name=embedding_model)
         
         print(f"[INIT] Loading BGE Cross-Encoder Reranker ({reranker_model})...")
         self.reranker = CrossEncoder(reranker_model, max_length=512)
 
-        self.llm = ChatOpenAI(
+        self.llm = ChatGroq(
             temperature=0, 
-            openai_api_key=o_api_key, 
-            model_name=model_name, 
-            max_tokens=4096,
-            model_kwargs={"seed": 42}
+            groq_api_key=g_api_key, 
+            model_name=model_name
         )
         self.output_parser = JsonOutputParser()
         self._setup_prompts()
@@ -438,7 +439,7 @@ class ComplianceRAG:
     # =========================================================================
     # CORE EVALUATION LOGIC
     # =========================================================================
-    def audit_large_document(self, target_pdf_path: str, framework_name: str, k: int = 4, summary_mode: bool = False, evaluate_llm: bool = True) -> Dict[str, Any]:
+    def audit_large_document(self, target_pdf_path: str, framework_name: str, k: int = 10, summary_mode: bool = False, evaluate_llm: bool = True) -> Dict[str, Any]:
         vectorstore = self._load_fw_vectorstore(framework_name) or self.ingest_single_framework(framework_name)
         if not vectorstore: return {"error": "Framework not found."}
 
