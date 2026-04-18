@@ -1,5 +1,7 @@
 # Lytrex
 
+
+
 Lytrex is an end-to-end intelligent system designed to automate and scale cybersecurity compliance auditing across enterprise documents.
 
 It leverages advanced **Retrieval-Augmented Generation (RAG)**, combined with hierarchical document processing and a multi-stage reasoning pipeline, to evaluate organizational policies against regulatory frameworks such as **NCA**, **SAMA**, and **ECC**.
@@ -11,7 +13,7 @@ It leverages advanced **Retrieval-Augmented Generation (RAG)**, combined with hi
 Lytrex is a structured AI auditing engine that:
 
 - Processes large enterprise documents (50+ pages)
-- Retrieves relevant regulatory controls with high precision
+- Retrieves relevant regulatory controls with high precision using hybrid BM25 + FAISS retrieval
 - Performs deep contextual analysis and reasoning
 - Generates structured, traceable audit reports
 - Produces a final compliance score with actionable recommendations
@@ -23,21 +25,23 @@ Lytrex is a structured AI auditing engine that:
 ### 1. Intelligent Compliance Mapping
 
 - Maps company policies to specific regulatory controls
-- Uses semantic understanding rather than keyword matching
+- Uses semantic understanding (dense retrieval) combined with exact keyword matching (BM25) for maximum coverage
 
 ### 2. Scalable Document Processing
 
 - Handles large documents using a **Map–Reduce** architecture
+- Sections are split into micro-chunks for retrieval granularity, then re-assembled for LLM evaluation
 - Ensures full document coverage while preserving context
 
-### 3. High-Precision Retrieval
+### 3. High-Precision Hybrid Retrieval
 
-Two-stage retrieval pipeline:
+Three-stage retrieval pipeline per section:
 
-- **Dense retrieval** (FAISS)
-- **Cross-encoder re-ranking** (BGE)
+1. **Micro-chunking** — each section is split into small query chunks
+2. **Hybrid retrieval** — both FAISS (dense) and BM25 (sparse) are run per micro-chunk, candidates are merged and deduplicated
+3. **Cross-encoder re-ranking** (BGE) — the full section is scored against all candidates to select top-k
 
-Achieves a strong balance between recall and precision.
+This achieves strong recall (nothing missed) and high precision (only relevant controls surfaced).
 
 ### 4. Advanced Reasoning Engine
 
@@ -55,19 +59,22 @@ Ensures consistent and deterministic analysis.
 - Enforces traceability through explicit references:
   - Page number
   - Section number
+  - Framework control ID
 
 ---
 
 ## System Architecture (High-Level)
 
+![Architecture](./assets/Architecture.png)
+
 Lytrex operates through a layered architecture:
 
 | Layer | Description |
 |---|---|
-| **1. Document Ingestion Layer** | Processes compliance frameworks and company documents |
-| **2. Retrieval Layer** | Embedding generation, vector search (FAISS), and re-ranking |
-| **3. Reasoning Layer** | Contextual evaluation and audit generation |
-| **4. Aggregation Layer** | Combines page-level audit reports into a final consolidated result |
+| **1. Document Ingestion Layer** | Processes compliance frameworks (JSON or PDF) and company documents |
+| **2. Retrieval Layer** | Micro-chunking, hybrid FAISS+BM25 search, deduplication, and cross-encoder re-ranking |
+| **3. Reasoning Layer** | Contextual evaluation and per-section audit generation |
+| **4. Aggregation Layer** | Deduplicates and merges section-level reports into a final consolidated result |
 
 ---
 
@@ -94,221 +101,253 @@ Lytrex transforms this process into something that is:
 
 Lytrex achieves this through:
 
-- **Dense retrieval** — for broad coverage
-- **Re-ranking** — for contextual precision
-- **Hierarchical chunking** — for context preservation
-- **Map–Reduce architecture** — for scalability
-
-# Transition to Technical Details
-- The following sections describe the full technical architecture and implementation details of the Lytrex system.
-
-
-# 1. Core AI Models
-
-- **LLM (Reasoning Engine):** gpt-4o (OpenAI)  
-  Configured with `temperature = 0` to ensure deterministic outputs and eliminate hallucinations, enabling precise, rule-based compliance analysis.
-
-- **Embedding Model (Semantic Encoder):** text-embedding-3-large (OpenAI)  
-  Transforms regulatory frameworks into high-dimensional (3,072-d) vector representations for semantic retrieval.
-
-- **Re-ranking Model (Relevance Scorer):** BAAI/bge-reranker-base  
-  A local Cross-Encoder that evaluates query–document pairs to refine retrieval based on deep contextual relevance.
+- **Hybrid retrieval (BM25 + FAISS)** — for broad coverage, both semantic and keyword-exact
+- **Cross-encoder re-ranking** — for contextual precision at the section level
+- **Hierarchical chunking** — for context preservation (child chunks for retrieval, parent chunks for LLM)
+- **Map–Reduce architecture** — for scalability across large documents
 
 ---
 
-# 2. Retrieval Pipeline (Two-Stage Architecture)
+# Transition to Technical Details
 
-- **Vector Database:** FAISS (Facebook AI Similarity Search)  
-  Fully local vector store enabling fast similarity search without external API calls.
+The following sections describe the full technical architecture and implementation details of the Lytrex system.
 
-- **Stage 1 — Dense Retrieval:**  
-  Performs approximate nearest-neighbor search over embeddings to retrieve **Top 20 candidates (k × 5)** based on vector similarity.
+---
 
-- **Stage 2 — Cross-Encoder Re-ranking:**  
-  Applies the BGE re-ranker to score retrieved candidates against the query context, selecting the **Top 4 (k)** most relevant results.
+# 1. Core AI Models
+
+- **LLM (Reasoning Engine):** `gpt-4o` (OpenAI)  
+  Configured with `temperature = 0` and `seed = 42` to ensure deterministic outputs and eliminate hallucinations, enabling precise, rule-based compliance analysis.
+
+- **Embedding Model (Semantic Encoder):** `text-embedding-3-large` (OpenAI)  
+  Transforms regulatory framework sections into high-dimensional (3,072-d) vector representations for semantic retrieval.
+
+- **Re-ranking Model (Relevance Scorer):** `BAAI/bge-reranker-base`  
+  A local Cross-Encoder that evaluates full section–candidate pairs to refine retrieval based on deep contextual relevance.
+
+- **Sparse Retriever:** `BM25Okapi` (rank_bm25)  
+  Keyword-based retrieval run in parallel with FAISS. Catches exact control IDs, regulation numbers, and terminology that dense embeddings may miss.
+
+---
+
+# 2. Retrieval Pipeline (Three-Stage Architecture)
+
+### Vector Database
+
+**FAISS** (Facebook AI Similarity Search) — fully local vector store enabling fast similarity search without external API calls.
+
+**BM25 index** — built in-memory at runtime over all child chunks in the FAISS docstore.
+
+### Stage 1 — Micro-chunk Query Generation
+
+Each section of the target document (`map_chunk_size`, ~1 page) is further split into micro-chunks (`section_chunk_size`, ~200 chars) to act as fine-grained retrieval queries. This increases retrieval granularity without reducing the context passed to the LLM.
+
+### Stage 2 — Hybrid Retrieval (per micro-chunk)
+
+For each micro-chunk:
+- **FAISS** retrieves top `k × 2` candidates by vector similarity
+- **BM25** retrieves top `k × 2` candidates by keyword overlap
+
+All candidates across all micro-chunks are merged into a single pool and deduplicated by content.
+
+### Stage 3 — Cross-Encoder Re-ranking
+
+The **full section** (not the micro-chunk) is used as the query to score every candidate in the deduplicated pool. The BGE cross-encoder selects the **top-k** most contextually relevant results for LLM evaluation.
 
 ---
 
 # 3. Hierarchical Document Processing Strategy
 
-To mitigate the *“Lost in the Middle”* problem, the system uses **multi-level chunking** via RecursiveCharacterTextSplitter:
+To mitigate the *"Lost in the Middle"* problem, the system uses **multi-level chunking** via `RecursiveCharacterTextSplitter`:
 
-- **Child Chunks (~800 chars):**  
-  Optimized for high-precision vector retrieval (used in FAISS).
+- **Child Chunks (~500 chars):**  
+  Optimized for high-precision vector retrieval and BM25 indexing (stored in FAISS docstore).
 
-- **Parent Chunks (~8,000 chars):**  
+- **Parent Chunks (~2,500 chars):**  
   Full-context framework sections passed to the LLM.  
   Attached via metadata (`doc.metadata["parent_content"]`) to preserve semantic completeness.
 
-- **Map Chunks (~4,000 chars):**  
-  Segments of the target company document (≈1 page each), enabling focused and thorough analysis.
+- **Map Chunks (`map_chunk_size`, ~500 chars default):**  
+  Sections of the target company document (~1 page each), the unit of LLM micro-evaluation.
+
+- **Micro-chunks (`section_chunk_size`, ~200 chars default):**  
+  Fine-grained sub-splits of each map chunk, used exclusively as retrieval queries for BM25 and FAISS.
 
 ---
 
 # 4. Auditing Architecture (Map–Reduce Pipeline)
 
-Designed to scale across large enterprise documents (50+ pages):
+Designed to scale across large enterprise documents (50+ pages).
 
-- **MAP Phase (Page-Level Analysis):**  
-  - Iterates over document chunks (≈1 page each).  
-  - Retrieves relevant framework context per chunk.  
-  - gpt-4o generates structured **JSON-based mini audit reports** per page.
+## MAP Phase (Section-Level Analysis)
 
-- **REDUCE Phase (Global Synthesis):**  
-  - Aggregates all page-level reports.  
-  - Reprocesses them using gpt-4o as a *Chief Auditor*.  
-  - Deduplicates findings and produces a consolidated **final compliance score**.
+For each section of the target document:
+
+1. Split the section into micro-chunks (`section_chunk_size`)
+2. Run FAISS and BM25 retrieval on each micro-chunk (top `k × 2` each)
+3. Merge all candidates across micro-chunks; deduplicate by content
+4. Cross-encoder scores every candidate against the **full section**; select top-k
+5. Expand each top-k child chunk to its full parent chunk for context
+6. Pass the assembled context + section to `gpt-4o` for structured JSON micro-audit
+
+## REDUCE Phase (Global Synthesis)
+
+1. Collect all section-level JSON reports into a single array
+2. Pass to `gpt-4o` acting as *Chief Auditor*
+3. Deduplicate violations and compliant areas across sections
+4. Compute and return a consolidated **final compliance score** and executive summary
 
 ---
 
 # 5. Output Engineering & Reliability
 
 - **Structured Output Enforcement:**  
-  JsonOutputParser (LangChain) ensures strictly valid JSON responses, eliminating free-form text.
+  `JsonOutputParser` (LangChain) ensures strictly valid JSON responses, eliminating free-form text.
 
 - **Traceability Mechanism:**  
-  Prompts enforce explicit citation of evidence using `[Page X, Section Y]`, ensuring all findings are verifiable and grounded.
+  Prompts enforce explicit citation of evidence using `[Company Page: X | Company Section: Y | Framework Control: Z]`, ensuring all findings are verifiable and grounded.
+
+- **Gatekeeper (Relevance Check):**  
+  Before auditing, the first page of the uploaded document is evaluated by the LLM to confirm it is a corporate policy or procedure. Irrelevant documents (menus, articles, etc.) are rejected with a reasoning explanation before any retrieval or auditing occurs.
 
 ---
 
-# 6. End-to-End Workflow (Highly Detailed Example)
+# 6. End-to-End Workflow (Detailed Example)
 
-**Input:**  
-A 60-page company cybersecurity policy document (PDF) + NCA compliance framework.
+**Input:** A 60-page company cybersecurity policy document (PDF) + NCA compliance framework (JSON).
 
 ---
 
-## Step 1 — Preprocessing
+## Step 1 — Framework Ingestion
 
-- The framework PDF is split into:
-  - 800-char child chunks → embedded using text-embedding-3-large  
-  - Stored in FAISS  
-- Each child chunk is linked to its 8,000-char parent via metadata.
+- The framework JSON is parsed into structured sections
+- Each section's text is split into child chunks (~500 chars) → embedded with `text-embedding-3-large` → stored in FAISS
+- Each child chunk carries `parent_content` metadata (~2,500 chars) for context expansion at retrieval time
+- A BM25 index is built over all child chunks at runtime
 
 ---
 
 ## Step 2 — Company Document Chunking
 
-- The 60-page document is split into ~15 chunks (≈4,000 chars each).  
-- Each chunk represents ~1 page or logical section.
+- The 60-page PDF is split into sections (~500 chars each, `map_chunk_size`)
+- Each section represents ~1 page or a logical policy block
 
 ---
 
-## Step 3 — MAP Phase (Per Chunk Execution)
+## Step 3 — MAP Phase (Per Section)
 
-**Example: Chunk #7 (Access Control Policy)**
+**Example: Section covering Access Control Policy**
 
-1. **Query Construction:**  
-   It takes the entire 4,000-character Map Chunk, embeds the whole thing as one giant dense vector, and uses that massive vector to search FAISS. This is a strength of text-embedding-3-large—it can hold the semantic weight of a whole page at once.
+1. **Micro-chunk split:**  
+   The ~500-char section is split into micro-chunks (~200 chars each)
 
-2. **Stage 1 Retrieval (FAISS):**  
-   Retrieve Top 20 candidate controls (vector similarity)
+2. **Hybrid retrieval (per micro-chunk):**  
+   - FAISS returns top `k × 2` candidates by semantic similarity  
+   - BM25 returns top `k × 2` candidates by keyword match  
+   - All candidates are merged and deduplicated
 
-3. **Stage 2 Re-ranking:**  
-   BGE re-ranker scores each pair  
-   Select Top 4 most relevant controls
+3. **Cross-encoder re-ranking:**  
+   Full section vs. every deduplicated candidate → top-k selected
 
-4. **Context Expansion:**  
-   Replace each retrieved child chunk with its full parent (~8,000 chars)
+4. **Context expansion:**  
+   Each top-k child chunk is replaced with its full parent section (~2,500 chars)
 
-5. **LLM Evaluation:**  
-   Pass:
-   - Company chunk (Chunk #7)  
-   - Retrieved framework controls  
-   Into gpt-4o
+5. **LLM micro-evaluation:**  
+   Section + assembled framework context passed to `gpt-4o`
 
-6. **Output (Mini Report):**
+6. **Output (mini audit report):**
 
+```json
 {
-    "internal_audit_reasoning": "Step-by-step logic. I checked [Page 7, Section 2.1] regarding user access. The retrieved framework control AC-03 requires the principle of least privilege. The company document explicitly states that all employees receive global admin rights by default, which is a direct contradiction. Found violation.",
-    "compliance_score": 75,
-    "executive_summary": "Section 2.1 outlines the company's access control policy. While basic authentication is required, the policy contains a critical flaw by granting excessive administrative rights to standard users, directly violating least-privilege mandates.",
-    "compliant_areas": [
-        "[Page 7, Section 2.1] Successfully requires multi-factor authentication for all initial system logins."
-    ],
-    "violations": [
-        "[Page 7, Section 2.1] Contradicts framework Control AC-03 by failing to enforce the principle of least privilege for standard employees (-25 pts)."
-    ],
-    "recommendations": [
-        "[Page 7, Section 2.1] Rewrite the policy to explicitly mandate Role-Based Access Control (RBAC) and ensure users are granted only the minimum permissions required for their roles."
-    ]
+  "internal_audit_reasoning": "Checked [Company Section: 2.1]. Framework Control AC-03 requires least privilege. Company document states all employees receive global admin rights by default — direct contradiction. Found violation.",
+  "compliance_score": 75,
+  "executive_summary": "Section 2.1 outlines access control policy. While MFA is required for login, the policy critically fails least-privilege mandates by granting global admin rights to standard users.",
+  "compliant_areas": [
+    "[Company Page: 7 | Company Section: 2.1 | Framework Control: AC-01] Successfully requires MFA for all initial system logins."
+  ],
+  "violations": [
+    "[Company Page: 7 | Company Section: 2.1 | Framework Control: AC-03] Fails to enforce least privilege — standard employees receive global admin rights by default (-25 pts)."
+  ],
+  "recommendations": [
+    "[Company Page: 7 | Company Section: 2.1 | Framework Control: AC-03] Rewrite policy to mandate Role-Based Access Control (RBAC) with minimum required permissions per role."
+  ]
 }
+```
 
 ---
 
-## Step 4 — Iterate Across All Chunks
+## Step 4 — Iterate Across All Sections
 
-- Repeat Step 3 for all ~15 chunks  
-- Generate 15 independent audit reports
+- Repeat Step 3 for all sections of the document
+- Each produces an independent JSON mini-audit
 
 ---
 
-## Step 5 — REDUCE Phase (Final Aggregation)
+## Step 5 — REDUCE Phase
 
-1. Combine all mini-reports into one array:
-
-[report_1, report_2, ..., report_15]
-
-2. Pass into gpt-4o with aggregation prompt:
-   - Remove duplicate violations  
-   - Merge similar findings  
-   - Compute final compliance score  
+1. Combine all mini-reports into one array: `[report_1, report_2, ..., report_N]`
+2. Pass to `gpt-4o` (Chief Auditor prompt):
+   - Deduplicate violations and compliant areas
+   - Merge overlapping findings
+   - Compute final weighted compliance score
 
 ---
 
 ## Step 6 — Final Output
 
+```json
 {
   "final_compliance_score": 78,
-  "master_executive_summary": "The organization demonstrates a baseline commitment to cybersecurity, particularly in mandatory multi-factor authentication and data encryption at rest. However, there are systemic vulnerabilities in the Access Control and Incident Response domains. Specifically, the failure to enforce the principle of least privilege across standard employee accounts presents a high-risk contradiction to NCA framework requirements.",
+  "master_executive_summary": "The organization demonstrates a baseline commitment to cybersecurity, particularly in MFA and AES-256 encryption at rest. However, systemic vulnerabilities exist in Access Control and Incident Response. The failure to enforce least privilege presents a high-risk contradiction to NCA framework requirements.",
   "all_compliant_areas": [
-    "[Page 7, Section 2.1] Successfully requires multi-factor authentication for all initial system logins.",
-    "[Page 22, Section 4.3] Data at rest is encrypted using AES-256 standard.",
-    "[Page 45, Section 8.1] Employee security awareness training is mandated annually."
+    "[Company Page: 7 | Company Section: 2.1 | Framework Control: AC-01] MFA required for all system logins.",
+    "[Company Page: 22 | Company Section: 4.3 | Framework Control: DS-04] Data at rest encrypted using AES-256.",
+    "[Company Page: 45 | Company Section: 8.1 | Framework Control: HR-02] Annual security awareness training mandated."
   ],
   "all_unique_violations": [
-    "[Page 7, Section 2.1] Contradicts framework Control AC-03 by failing to enforce the principle of least privilege for standard employees (-15 pts).",
-    "[Page 31, Section 5.4] No defined maximum timeframe for reporting severe security incidents to the relevant authorities, violating IR-02 (-7 pts)."
+    "[Company Page: 7 | Company Section: 2.1 | Framework Control: AC-03] Least privilege not enforced — global admin rights granted by default (-15 pts).",
+    "[Company Page: 31 | Company Section: 5.4 | Framework Control: IR-02] No defined timeframe for reporting critical incidents to authorities (-7 pts)."
   ],
   "master_recommendations": [
-    "Overhaul the Access Control policy on Page 7 to explicitly mandate Role-Based Access Control (RBAC).",
-    "Update the Incident Response playbook on Page 31 to include a strict 24-hour reporting window for critical breaches."
+    "Overhaul Access Control policy (Page 7) to mandate RBAC with minimum required permissions.",
+    "Update Incident Response playbook (Page 31) to include a strict 24-hour reporting window for critical breaches."
   ]
 }
+```
 
 ---
 
-# Why This Works (Key Insight)
+# 7. Why This Works (Key Insights)
 
-- **Dense retrieval = recall (broad search)**  
-- **Cross-encoder = precision (deep reasoning)**  
-- **Parent chunking = context preservation**  
-- **Map–Reduce = scalability across large documents**  
+| Component | Role |
+|---|---|
+| **BM25** | Catches exact control IDs and terminology — never misses a numbered rule |
+| **FAISS (dense)** | Catches conceptually related controls even when wording differs |
+| **Cross-encoder** | Precision filter — scores full section vs candidate, not just embedding similarity |
+| **Parent chunking** | Preserves full regulatory context for LLM; child chunks are retrieval-only |
+| **Micro-chunking** | Increases retrieval surface area per section without reducing LLM context quality |
+| **Map–Reduce** | Scales to 50+ page documents without context window overflow |
 
+---
 
-# 7. Experimental Directions
-
-- **Hybrid Retrieval (BM25 + Dense):**  
-  Combine FAISS with BM25 to improve recall (semantic + keyword matching).
-  - Add a sparse retriever like BM25 alongside FAISS.
-  - BM25 searches for exact keyword matches, while FAISS searches for conceptual meaning.
-  - Use LangChain’s EnsembleRetriever to merge the results of both before passing them to your BGE Re-ranker. This guarantees you never miss a rule just because the AI didn't map the numbers correctly.
-
-- **Model Exploration:**  
-  Test different embeddings (e.g., nomic, bge, e5) and LLMs (GPT, Qwen, LLaMA) for accuracy vs cost.
+# 8. Experimental Directions
 
 - **Chunk Tuning:**  
   Experiment with:
-  - parent_chunk_size: 6000–10000  
-  - child_chunk_size: 400–1200  
-  - map_chunk_size: 3000–6000  
-  Optimize for balance between context and precision.
+  - `parent_chunk_size`: 2000–4000  
+  - `child_chunk_size`: 400–800  
+  - `map_chunk_size`: 400–1000  
+  - `section_chunk_size`: 200–600 (larger = richer BM25/FAISS queries, lower granularity)  
+  Optimize for balance between retrieval coverage and precision.
 
 - **Re-ranking Improvements:**  
-  Try stronger models (bge-large, monoT5) and increase candidate pool (Top 20 → 30+).
+  Try stronger models (`bge-reranker-large`, `monoT5`) and increase the candidate pool (`k × 2` → `k × 3` or more).
+
+- **Model Exploration:**  
+  Test different embeddings (`nomic-embed-text`, `bge-large-en`, `e5-mistral`) and LLMs (GPT-4o-mini for cost, Qwen, LLaMA) for accuracy vs. cost tradeoffs.
 
 - **Evaluation:**  
-  Track Recall@k, precision, and consistency vs human audit.
+  Track `Recall@k`, precision, F1 against a human-audited ground truth, and LLM consistency across runs.
 
 - **Advanced Ideas:**  
-  Query expansion, hierarchical retrieval, caching previous violations.
+  Query expansion before retrieval, hierarchical retrieval (domain → section → control), caching retrieved controls for repeated violations across sections.
