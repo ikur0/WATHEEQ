@@ -1,7 +1,7 @@
 import os
 import glob
 import json
-from rag_improvment_groq import ComplianceRAG  # Imports your RAG class from rag.py
+from rag_improvment import ComplianceRAG  # Imports your RAG class from rag.py
 
 def main():
     print("Initializing RAG System... Please wait.")

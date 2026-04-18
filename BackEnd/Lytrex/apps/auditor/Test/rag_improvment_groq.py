@@ -1,4 +1,3 @@
-## this just improves over rag.py in this directory
 """ framework is from json (for NCA only)
 From NCA.json
 
@@ -155,7 +154,7 @@ class ComplianceRAG:
             3. Explicit Contradictions Only: Flag violations where the document explicitly contradicts the framework.
             4. Use 'internal_audit_reasoning' to map your logic BEFORE scoring.
             5. Base score is 100. Deduct 10-25 points for each explicit violation found.
-            6. Traceability: For EVERY single comparison, sentence, compliant area, and violation, you MUST explicitly cite the specific section number, heading, and/or page number from the company document.
+            6. Traceability: For EVERY single comparison, sentence, compliant area, and violation, you MUST explicitly cite it in this exact format: [Company Page: X | Company Section: Y | Framework Control: Z]. Extract the page from the metadata provided or the printed text.
 
             <framework_context>
             {context}
@@ -168,12 +167,12 @@ class ComplianceRAG:
             Provide a comprehensive analysis.
             Respond ONLY with a valid JSON object matching this exact structure:
             {{
-                "internal_audit_reasoning": "Step-by-step logic. I checked [Section X, Page Y]. Z was missing (ignored). Found violation in [Section W].",
+                "internal_audit_reasoning": "Step-by-step logic. I checked [Company Section: X]. Z was missing (ignored). Found violation in [Company Section: W].",
                 "compliance_score": 0,
                 "executive_summary": "A detailed 3-4 sentence summary.",
-                "compliant_areas": ["[Page X, Section Y] precise detail of what they did right"],
-                "violations": ["[Page X, Section Y] specific breach with framework section references (-15 pts)"],
-                "recommendations": ["[Page X, Section Y] Detailed actionable steps to fix the specific violation"]
+                "compliant_areas": ["[Company Page: X | Company Section: Y | Framework Control: Z] precise detail of what they did right"],
+                "violations": ["[Company Page: X | Company Section: Y | Framework Control: Z] specific breach (-15 pts)"],
+                "recommendations": ["[Company Page: X | Company Section: Y | Framework Control: Z] Detailed actionable steps to fix the specific violation"]
             }}
             """
         )
@@ -187,7 +186,7 @@ class ComplianceRAG:
             1. If a control is not mentioned, ignore it. Do NOT invent violations.
             2. Explicit Contradictions Only.
             3. Use 'internal_audit_reasoning' to do math. Base score 100, deduct for explicit violations.
-            4. Traceability: You MUST explicitly cite the specific section number, heading, or page number from the company document for EVERY key issue and comparison sentence.
+            4. Traceability: You MUST explicitly format the citation exactly like this: [Company Page: X | Company Section: Y | Framework Control: Z] for EVERY key issue and comparison sentence. Get the page from the metadata provided or printed text.
 
             <framework_context>
             {context}
@@ -200,10 +199,10 @@ class ComplianceRAG:
             Provide a strictly brief, top-level overview. Do not over-explain.
             Respond ONLY with a valid JSON object matching this exact structure:
             {{
-                "internal_audit_reasoning": "Brief check of contradictions for scoring based on [Section X].",
+                "internal_audit_reasoning": "Brief check of contradictions for scoring based on [Company Section: X].",
                 "compliance_score": 0,
                 "summary": "A strict 1-sentence summary.",
-                "key_issues": ["[Page X, Section Y] Top 1-3 critical explicit issues only"]
+                "key_issues": ["[Company Page: X | Company Section: Y | Framework Control: Z] Top critical explicit issue"]
             }}
             """
         )
