@@ -1,0 +1,18 @@
+{
+  "framework": "NCA",
+  "source_file": "ncs_en.pdf",
+  "sections": [
+        {
+      "section_id": "SEC_0011",
+      "section": "4.2",
+      "title": "Symmetric Algorithms, Stream Cipher Algorithms",
+      "page_range":[],
+      "text": "• 28SNOW 2.0 (ISO/IEC 18033-4)\n. 1-bit key length for MODERATE.",
+      "depends_on": ["xxx"]
+    }
+  ]
+  }
+
+
+  in ECC chunk on 2digits such that 1-1,1-2,1-3 each is chunk, remove objective
+  in SAMA chunk on 3 or 4 digits 1-1-1 or 1-2 remove objectiev,scope

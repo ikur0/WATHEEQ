@@ -168,7 +168,7 @@ class ComplianceRAG:
             Respond ONLY with a valid JSON object matching this exact structure:
             {{
                 "internal_audit_reasoning": "Step-by-step logic. I checked [Company Section: X]. Z was missing (ignored). Found violation in [Company Section: W].",
-                "compliance_score": 0,
+                "compliance_score": 1-100,
                 "executive_summary": "A detailed 3-4 sentence summary.",
                 "compliant_areas": ["[Company Page: X | Company Section: Y | Framework Control: Z] precise detail of what they did right"],
                 "violations": ["[Company Page: X | Company Section: Y | Framework Control: Z] specific breach (-15 pts)"],
@@ -200,7 +200,7 @@ class ComplianceRAG:
             Respond ONLY with a valid JSON object matching this exact structure:
             {{
                 "internal_audit_reasoning": "Brief check of contradictions for scoring based on [Company Section: X].",
-                "compliance_score": 0,
+                "compliance_score": 1-100,
                 "summary": "A strict 1-sentence summary.",
                 "key_issues": ["[Company Page: X | Company Section: Y | Framework Control: Z] Top critical explicit issue"]
             }}
@@ -219,7 +219,7 @@ class ComplianceRAG:
 
             Return ONLY valid JSON matching this structure:
             {{
-                "final_compliance_score": 0,
+                "final_compliance_score": 1-100,
                 "master_executive_summary": "A comprehensive summary of the entire document's compliance posture.",
                 "all_compliant_areas": ["..."],
                 "all_unique_violations": ["..."],
@@ -239,7 +239,7 @@ class ComplianceRAG:
 
             Return ONLY valid JSON matching this structure:
             {{
-                "final_compliance_score": 0,
+                "final_compliance_score": 1-100,
                 "master_summary": "A strict 1-2 sentence overall summary.",
                 "all_unique_key_issues": ["Merged list of top critical issues"]
             }}

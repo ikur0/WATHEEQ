@@ -1,597 +1,214 @@
 {
   "framework": "NCA",
   "source_file": "ncs_en.pdf",
-  "total_sections": 63,
   "sections": [
     {
       "section_id": "SEC_0001",
-      "title": "Document Start",
-      "level": 1,
-      "start_page": 1,
-      "end_page": 1,
-      "text": "National Cryptographic Standards",
-      "parent_id": null
+      "section": "2.1.1",
+      "title": "Stream Cipher Algorithms",
+      "page_range": [11],
+      "text": "Accepted stream cipher algorithms:\nSNOW 2.0 (ISO/IEC 18033-4)\n  128-bit key length for MODERATE.\n  256-bit key length for ADVANCED.\nSOSEMANUK (from eSTREAM project)\n  128-bit and 256-bit key lengths for MODERATE.\n  Not accepted for ADVANCED.\n\nCommon notes:\nInitialization Vector (IV) must be at least 128 bits.\nStream ciphers must be used with a different IV for each key.\nA key must be used only once.\nValid decryption must never be relied on for authenticity.",
+      "depends_on": []
     },
     {
       "section_id": "SEC_0002",
-      "title": ")NCS – 1 : 2020(",
-      "level": 1,
-      "start_page": 1,
-      "end_page": 6,
-      "text": ")NCS – 1 : 2020(\nSharing Notice: White\nDocument Classification: Open\nIn the Name of Allah,\nThe Most Gracious,\nThe Most Merciful\nDocument Classification: Open\nThe National Cryptographic Standards\nSharing Notice: White\nTraffic Light Protocol (TLP):\nThis marking protocol is widely used around the world. It has four colors (traffic lights):\nRed – Personal, Confidential and for Intended Recipient Only\nThe recipient has no rights to share information classified in red with any person outside\nthe defined range of recipients either inside or outside the organization.\nAmber – Restricted Sharing\nThe recipient may share information classified in amber only with intended recipients\ninside the organization and with recipients who are required to take action related to the\nshared information.\nGreen – Sharing within the Same Community\nThe recipient may share information classified in green with other recipients inside the\norganization or outside it within the same sector or related to the organization. However,\nit is not allowed to exchange or publish this information on public channels.\nWhite - No Restrictions\nDocument Classification: Open\nThe National Cryptographic Standards\nSharing Notice: White\nUpdates to Document\nChanges\nDate\nVersion\nInitial version\nJuly 2020\n1.0\nDocument Classification: Open\nThe National Cryptographic Standards\nSharing Notice: White\nTable of Contents:\nTraffic Light Protocol (TLP)\nUpdates to Document\nExecutive Summary\n1.1\nScope\n1.2\nLevels of Cryptographic Standards\n1.3\nStructure of the Document",
-      "parent_id": null
+      "section": "2.1.2",
+      "title": "Block Ciphers Algorithms",
+      "page_range": [11],
+      "text": "Accepted block cipher algorithms:\nAdvanced Encryption Standards (AES) as in FIPS-197\n  128-bit and 192-bit key lengths for MODERATE.\n  256-bit key length for ADVANCED.\nCamellia (ISO/IEC 18033-3)\n  128-bit and 192-bit key lengths for MODERATE.\n  256-bit key length for ADVANCED.\nSerpent\n  128-bit and 192-bit key lengths for MODERATE.\n  256-bit key length for ADVANCED.",
+      "depends_on": []
     },
     {
       "section_id": "SEC_0003",
-      "title": "Cryptographic Primitives",
-      "level": 1,
-      "start_page": 6,
-      "end_page": 6,
-      "text": "2 Cryptographic Primitives\n2.1\nSymmetric Algorithms\n2.1.1\nStream Cipher Algorithms\n2.1.2\nBlock Ciphers Algorithms\n2.2\nAsymmetric Algorithms\n2.3\nHash Functions\n2.4\nLightweight Crypto Algorithms",
-      "parent_id": null
+      "section": "2.2",
+      "title": "Asymmetric Algorithms",
+      "page_range": [12],
+      "text": "Accepted asymmetric algorithms:\nRSA\n  At least 3072 bits for key length and e value > 65537 for MODERATE.\n  Not accepted for ADVANCED.\n  Strong primes must be used.\nDiffie-Hellman and Finite Field\n  At least 3072 bits for key length and q value (subgroup size) of 256 for MODERATE.\n  Not accepted for ADVANCED.\nElliptic Curve Discrete Logarithm Problem based Algorithms (ECDLP)\n  NIST P-256, NIST P-384, BrainpoolP256r1, BrainpoolP384r1 and Curve25519 for MODERATE.\n  NIST P-521, Curve448 and BrainpoolP512r1 for ADVANCED.",
+      "depends_on": []
     },
     {
       "section_id": "SEC_0004",
-      "title": "Cryptographic Schemes",
-      "level": 1,
-      "start_page": 6,
-      "end_page": 7,
-      "text": "3 Cryptographic Schemes\n3.1\nBlock Cipher Modes of Operation\n3.2\nMessage Authentication Codes (MAC)\n3.3\nAuthenticated Encryption with Associated Data (AEAD)\n3.4\nKey Wrap Functions\n3.5\nKey Derivation Functions (KDF)\n3.6\nKey Agreement and Key Transport\n3.6.1\nSymmetric Schemes\n3.6.2\nAsymmetric Schemes: Key Exchange Algorithms\n3.7\nHybrid Encryption Schemes\n3.8\nPublic Key Signatures\n\nIntroduction\n1 Introduction\nDocument Classification: Open\nThe National Cryptographic Standards\nSharing Notice: White\n\nCommonly Used Cryptographic Protocols\n4 Commonly Used Cryptographic Protocols\n4.1\nIP Security (IPsec)\n4.2\nTransport Layer Security (TLS)\n4.3",
-      "parent_id": null
+      "section": "2.3",
+      "title": "Hash Functions",
+      "page_range": [12],
+      "text": "Accepted hash functions:\nSecure Hash Algorithm 2 (SHA-2)\n  SHA2-384 and SHA2-512/256 for MODERATE.\n  Not accepted for ADVANCED.\nSecure Hash Algorithm 3 (SHA-3)\n  SHA3-256, SHA3-384, SHAKE128 and SHAKE256 for MODERATE.\n  SHA3-512 for ADVANCED.\n\nCommon notes:\nHash functions must be inversion-resistant, pre-image resistant and collision resistant.\nFor SHAKE128, the output size d value must be >= 256 bits.\nFor SHAKE256, the output size d value must be >= 512 bits.\nSHA2-384 and SHA2-512/256 are sometimes referred to as SHA-384 and SHA-512/256 respectively.",
+      "depends_on": []
     },
     {
       "section_id": "SEC_0005",
-      "title": "Domain Name System Security (DNSSEC)",
-      "level": 1,
-      "start_page": 7,
-      "end_page": 7,
-      "text": "Domain Name System Security (DNSSEC)\n4.4\nSecure Shell (SSH)\n4.5\nBluetooth\n4.6\nUniversal Mobile Telecommunications System (UMTS) / Long Term Evolution (LTE) / 5G 19\n4.7\nWPA (Wi-Fi Protected Access)\n4.8\nKerberos Protocol\n\nPublic Key Infrastructure (PKI)\n5 Public Key Infrastructure (PKI)\n5.1\nAlgorithms for Certificates\n5.2\nValidity of the Certificates\n\nKey Lifecycle Management (KLM)\n6 Key Lifecycle Management (KLM)\n6.1\nKey Protection and Lifetime\n6.2\nKLM Processes",
-      "parent_id": null
+      "section": "2.4",
+      "title": "Lightweight Crypto Algorithms",
+      "page_range": [12, 13],
+      "text": "Accepted lightweight algorithms (on limited systems with constrained resources, where the use of conventional cryptographic standards is not applicable):\nBlock ciphers (ISO/IEC 29192-2)\n  PRESENT, 80-bit or 128-bit key lengths.\n  CLEFIA, 128-bit, 192-bit or 256-bit key lengths.\nStream ciphers (ISO/IEC 29192-3)\n  Enocoro, 80-bit or 128-bit key lengths.\n  Trivium, 80-bit key length.\nAsymmetric mechanisms (ISO/IEC 29192-4)\n  Unilateral authentication mechanisms.\n  ALIKE key exchange.\n  Identity-based signature.\nHash functions (ISO/IEC 29192-5)\n  PHOTON, 80-bit, 128-bit, 160-bit, 224-bit or 256-bit output sizes.\n  SPONGENT, 88-bit, 128-bit, 160-bit, 224-bit or 256-bit output sizes.\n  Lesamnta-LW, 256-bit output size.\nMessage Authentication Code (MAC) as in ISO/IEC 29192-6\n  Tsudik's keymode, hash-based.\n  Chaskey12, 128-bit key length.",
+      "depends_on": []
     },
     {
       "section_id": "SEC_0006",
-      "title": "Appendices",
-      "level": 1,
-      "start_page": 7,
-      "end_page": 9,
-      "text": "7 Appendices\n7.1\nPseudo Random Number Generation (PRNG)\n7.2\nPost-Quantum Cryptography\n7.3\nSide-channel Attacks\n7.4\nDefinitions\n7.5\nAcronyms\nDocument Classification: Open\nThe National Cryptographic Standards\nSharing Notice: White\nExecutive Summary\nAs per the mandate of the National Cybersecurity Authority (NCA) that was issued by\nthe Royal Order number 6801, dated October 31, 2017, the NCA is mandated to draft the\nnational cryptographic policies and standards, to ensure compliance with these standards\nand policies, and to review and update them periodically.\nFrom this perspective, the NCA has developed the National Cryptographic Standards\n(NCS –1:2020) to prescribe the minimum acceptable cryptographic requirements for\ncivilian and commercial purposes to protect national data, systems and networks. This\ndocument highlights the details of the national cryptographic standards, which are composed\nof two strength levels: MODERATE and ADVANCED.\nThis standards document prescribes the accepted symmetric and asymmetric primitives,\nsymmetric and asymmetric schemes, some of the accepted common application protocols\nrelated to cryptography, Public Key Infrastructure (PKI) and Key Lifecycle Management\n(KLM). It further presents appendices that include some considerations regarding Pseudo\nRandom Number Generation (PRNG), Post-Quantum Cryptography and Side-Channel\nAttacks.\nDocument Classification: Open\nThe National Cryptographic Standards\nSharing Notice: White",
-      "parent_id": null
+      "section": "3.1",
+      "title": "Block Cipher Modes of Operation",
+      "page_range": [14],
+      "text": "Accepted block cipher modes of operation:\nCounter Mode (CTR) as in NIST SP800-38A.\nCipher Block Chaining (CBC) as in NIST SP800-38A.\nXEX Tweakable Block Cipher with Ciphertext Stealing (XTS-AES) as in NIST SP800-38E.\nOutput Feedback (OFB) as in NIST SP 800-38A.\nCipher Feedback (CFB) as in NIST SP 800-38A.\n\nCommon notes:\nCipher Block Chaining (CBC) is only accepted for MODERATE.",
+      "depends_on": []
     },
     {
       "section_id": "SEC_0007",
-      "title": "Scope",
-      "level": 2,
-      "start_page": 9,
-      "end_page": 9,
-      "text": "1.1 Scope\nThe National Cryptographic Standards (NCS - 1: 2020) defines the minimum cryptography\nrequirements to be met by national entities when using cryptography to protect data (in\nuse, at rest and in transit), systems and networks for civilian or commercial purposes.\nThis cryptographic standards document is built with consideration of current and\nforeseeable advancements in the affordable computational power and assuming the\nabsence of quantum computing capabilities. The document covers cryptography primitives,\nschemes, main protocols, Public Key Infrastructure (PKI) and Key Lifecycle Management\n(KLM).\nWhile this document prescribes the minimum acceptable cryptographic requirements, it\nis extremely crucial to implement these requirements carefully to avoid implementation-\nbased vulnerabilities. The NCS will be updated on an as-needed basis. The latest released\nversion of the NCS overrides previous versions.",
-      "parent_id": "SEC_0006"
+      "section": "3.2",
+      "title": "Message Authentication Codes (MAC)",
+      "page_range": [14],
+      "text": "Accepted message authentication codes:\nCipher-based MAC (CMAC) as in NIST SP 800-38B\n  The scheme should be used for at most 2^48 messages.\n  Used only in applications where no party learns all-0 string enciphering in the block cipher underlying the MAC.\n  A tag length of at least 96 bit with protected authentication keys.\nHash-based MAC (HMAC) as in FIPS PUB 198-1\n  A tag length of at least 96 bit with protected authentication keys.\n  To be used with SHA-2 and SHA-3 (as mentioned in Sub-Section 2.3).",
+      "depends_on": []
     },
     {
       "section_id": "SEC_0008",
-      "title": "Levels of Cryptographic Standards",
-      "level": 2,
-      "start_page": 9,
-      "end_page": 10,
-      "text": "1.2 Levels of Cryptographic Standards\nThe NCS defines two strength levels for cryptographic standards: the MODERATE level\nand the ADVANCED level. Having two strength levels provides more flexibility to choose\nthe appropriate level of protection for different classes of data, systems and networks.\nEach national entity is required to choose and implement the appropriate cryptographic\nstandard level based on the nature and sensitivity of the data, systems and networks to be\nprotected. Furthermore, other cybersecurity regulations, issued by the NCA, may mandate\nthe use of a particular cryptographic standard level to protect data, systems and networks.\nThe MODERATE and ADVANCED strength levels are designed to target 128-bit and 256-bit\nsecurity levels, respectively. Specific requirements for each strength level are specified\nthroughout this document. Any requirement not specifically associated with one of these\ntwo strength levels applies equally to both.\nIntroduction\nDocument Classification: Open\nThe National Cryptographic Standards\nSharing Notice: White",
-      "parent_id": "SEC_0006"
+      "section": "3.3",
+      "title": "Authenticated Encryption with Associated Data (AEAD)",
+      "page_range": [14],
+      "text": "Accepted authenticated encryption with associated data:\nGalois Counter Mode (GCM) as in NIST SP 800-38D\n  A nonce generation length of at least 96 bits.\n  IV to be unique within the key change period.\n  The use of short authentication tags is not accepted.\nCounter with CBC-MAC (CCM) as in NIST SP 800-38C.",
+      "depends_on": []
     },
     {
       "section_id": "SEC_0009",
-      "title": "Structure of the Document",
-      "level": 2,
-      "start_page": 10,
-      "end_page": 10,
-      "text": "1.3 Structure of the Document\nThe rest of this document is organized as follows. Section 2 lists the accepted symmetric\nand asymmetric primitives with their key, block and initialization vector sizes. Section 3\nprovides the accepted symmetric and asymmetric schemes: block cipher modes of\noperation, MAC, AEAD, key wrap functions, key derivation functions, key agreement, key\ntransport, hybrid encryption and public key signatures. Section 4 provides requirements\nfor the most prevalent application protocols such as DNS Security (DNSSEC), IP Security\n(IPsec), Bluetooth, SSH, TLS, UMTS/LTE/5G, WPA and Kerberos. Section 5 provides a\nlist of the accepted algorithms for certificates and the validity of the certificates. Section",
-      "parent_id": "SEC_0006"
+      "section": "3.4",
+      "title": "Key Wrap Functions",
+      "page_range": [14],
+      "text": "Accepted key wrap functions:\nKey Wrap (KW) as in NIST SP 800-38F.\nKey Wrap with Padding (KWP) as in NIST SP 800-38F.",
+      "depends_on": []
     },
     {
       "section_id": "SEC_0010",
-      "title": "provides the requirements for the different steps of the key lifecycle to ensure that keys",
-      "level": 1,
-      "start_page": 10,
-      "end_page": 11,
-      "text": "6 provides the requirements for the different steps of the key lifecycle to ensure that keys\nare managed properly from the moment they are created until their destruction, and their\nusage is standardized across processes. Finally, Section 7 provides appendices that present\nsome information about Pseudo Random Number Generation (PRNG), Post-Quantum\nCryptography, Side-Channel Attacks, Definitions and Acronyms.\nDocument Classification: Open\nThe National Cryptographic Standards\nSharing Notice: White\n\nSymmetric Algorithms\n2.1 Symmetric Algorithms\n\nStream Cipher Algorithms\n2.1.1 Stream Cipher Algorithms\nAccepted stream cipher algorithms:",
-      "parent_id": null
+      "section": "3.5",
+      "title": "Key Derivation Functions (KDF)",
+      "page_range": [15],
+      "text": "Accepted key derivation functions:\nRFC 5869 (HKDF).\nIKE-v2-KDF.\nTLS-v1.2-KDF.\nX9.63-KDF.\n\nKDFs must comply with one of the following:\nNIST-800-56 A/B KDF (Single Step).\nNIST-800-56 C KDF (Extract-then-expand).\nNIST-800-108.",
+      "depends_on": []
     },
-
-
-
-
     {
       "section_id": "SEC_0011",
-      "title": "Symmetric Algorithms, Stream Cipher Algorithms",
-      "start_page": 11,
-      "end_page": 11,
-      "text": "• SNOW 2.0 (ISO/IEC 18033-4)\n. 128-bit key length for MODERATE.\n. 256-bit key length for ADVANCED.\n• SOSEMANUK1 (from eSTREAM project)\n. 128-bit and 256-bit key lengths for MODERATE.\n. Not accepted for ADVANCED.\nCommon notes:\n• Initialization Vector (IV) must be at least 128 bits.\n• Stream ciphers must be used with a different IV for each key.\n• A key must be used only once.\n• Valid decryption must never be relied on for authenticity.",
-      "chapter": "2",
-      "section": "2.1",
-      "control": "2.1.1"
+      "section": "3.6.1",
+      "title": "Symmetric Schemes",
+      "page_range": [15],
+      "text": "Accepted key agreement schemes:\nSymmetric key agreement schemes must rely solely on shared long-term secrets.\n\nAccepted key transport schemes:\nAll symmetric encryption schemes and primitives can be used as per Section 2 and Section 3.\nCombination of an encryption scheme with a MAC in encrypt-then-MAC mode (refer to Section 2 and Section 3).",
+      "depends_on": []
     },
     {
       "section_id": "SEC_0012",
-      "title": "Symmetric Algorithms,Block Ciphers Algorithms",
-      "start_page": 11,
-      "end_page": 11,
-      "text": "2.1.2 Block Ciphers Algorithms\nAccepted block cipher algorithms:\n• Advanced Encryption Standards (AES) as in FIPS-197\n. 128-bit and 192-bit key lengths for MODERATE.\n. 256-bit key length for ADVANCED.\n• Camellia (ISO/IEC 18033-3)\n. 128-bit and 192-bit key lengths for MODERATE.\n. 256-bit key length for ADVANCED.\n• Serpent2\n. 128-bit and 192-bit key lengths for MODERATE.\n. 256-bit key length for ADVANCED.",
-      "chapter": "2",
-      "section": "2.1",
-      "control": "2.1.2"
+      "section": "3.6.2",
+      "title": "Asymmetric Schemes: Key Exchange Algorithms",
+      "page_range": [15],
+      "text": "Accepted key exchange algorithms:\nDiffie-Hellman (DH) as in RFC 3526\n  At least 3072 bits for key length for MODERATE.\n  Not accepted for ADVANCED.\nElliptic Curve Diffie-Hellman (ECDH) as in NIST SP 800-56A\n  256-bit to 384-bit key for MODERATE.\n  512-bit key or using Curve448 for ADVANCED.\n  With forward secrecy and authenticated key establishment implementation.\nRSA Key Establishment (NIST 800-56B)\n  At least 3072 bits for key length for MODERATE.\n  Not accepted for ADVANCED.",
+      "depends_on": []
     },
-
-
     {
       "section_id": "SEC_0013",
-      "title": "C. Berbain et al. “Sosemanuk, a Fast Software-Oriented Stream Cipher.” In: Robshaw M., Billet O. (eds.) New Stream Cipher",
-      "level": 1,
-      "start_page": 11,
-      "end_page": 12,
-      "text": "1 C. Berbain et al. “Sosemanuk, a Fast Software-Oriented Stream Cipher.” In: Robshaw M., Billet O. (eds.) New Stream Cipher\nDesigns. LNCS 4986. Springer, 2008.\n2 E. Biham, R. Anderson, and L. Knudsen. SERPENT: A new block cipher proposal. In Fast Software Encryption - FSE’98,\nvolume 1372 of Lecture Notes in Computer Science, pages 222–238. Springer-Verlag, 1998.\nCryptographic Primitives\nDocument Classification: Open\nThe National Cryptographic Standards\nSharing Notice: White\n\nAsymmetric Algorithms\n2.2 Asymmetric Algorithms\nAccepted asymmetric algorithms:",
-      "parent_id": null
+      "section": "3.7",
+      "title": "Hybrid Encryption Schemes",
+      "page_range": [16],
+      "text": "Accepted hybrid encryption schemes:\nElliptic Curve Integrated Encryption Scheme (ECIES)\n  For MODERATE and ADVANCED.\nDiscrete Logarithm Integrated Encryption Scheme (DLIES)\n  For MODERATE.\n  Not accepted for ADVANCED.\nRSA with Optimal Asymmetric Encryption Padding (RSA-OAEP) as in PKCS #1 v2.1\n  For MODERATE.\n  Not accepted for ADVANCED.",
+      "depends_on": []
     },
-
-
-
     {
       "section_id": "SEC_0014",
-      "title": "Asymmetric Algorithms",
-      "start_page": 12,
-      "end_page": 12,
-      "text": "• RSA\n. At least 3072 bits for key length and “ ” value > 65537 for MODERATE.\n. Not accepted for ADVANCED.\n. Strong primes must be used.\n• Diffie-Hellman and Finite Field\n. At least 3072 bits for key length and “ ” value (subgroup size) of 256 for MODERATE.\n. Not accepted for ADVANCED.\n• Elliptic Curve Discrete Logarithm Problem based Algorithms (ECDLP)\n. NIST P-256, NIST P-384, BrainpoolP256r1, BrainpoolP384r1 and Curve25519 for\nMODERATE.\n. NIST P-521, Curve4483 and BrainpoolP512r1 for ADVANCED.",
-      "chapter": "2",
-      "section": "2.2",
-      "control": "2.2.1"
+      "section": "3.8",
+      "title": "Public Key Signatures",
+      "page_range": [16],
+      "text": "Accepted public key signatures:\nDigital Signature Algorithm (DSA) as in FIPS PUB 186-4\n  At least 3072 bits for modulus key for MODERATE.\n  Not accepted for ADVANCED.\nElliptical Curve Digital Signature Algorithm (ECDSA) as in FIPS PUB 186-4\n  256-bit to 384-bit key for MODERATE.\n  512-bit key or using Curve448 for ADVANCED.\n  Accepted message authentication algorithms will be dependent on system and use case.\nRSA signatures (RSA-PSS and RSA Digital Signature Scheme) as in PKCS, RSA Cryptographic Standard v2.2\n  RSA-PSS and RSA Digital Signature Scheme (RSA-DS2) are accepted.\n  Modulus lengths of 3072 bits for MODERATE.\n  Not accepted for ADVANCED.\nMerkle signatures\n  Accepted hash functions described in Section 2 must be used.\n  The required pseudo-random function family must be constructed with the HMAC construction based on the hash function used.",
+      "depends_on": []
     },
     {
       "section_id": "SEC_0015",
-      "title": "Hash Functions",
-      "start_page": 12,
-      "end_page": 12,
-      "text": "2.3 Hash Functions\nAccepted hash functions:\n• Secure Hash Algorithm 2 (SHA-2)\n. SHA2-384 and SHA2-512/256 for MODERATE.\n. Not accepted for ADVANCED.\n• Secure Hash Algorithm 3 (SHA-3)\n. SHA3-256, SHA3-384, SHAKE128 and SHAKE256 for MODERATE.\n. SHA3-512 for ADVANCED.\nCommon notes:\n• Hash functions must be inversion-resistant, pre-image resistant and collision resistant.\n• For SHAKE128, the output size “ ” value must be ≥256 bits.\n• For SHAKE256, the output size “ ” value must be ≥512 bits.\n• SHA2-384 and SHA2-512/256 are sometimes referred to as SHA-384 and SHA-512/256\nrespectively.",
-      "chapter": "2",
-      "section": "2.3",
-      "control": "2.3.1"
+      "section": "4.1",
+      "title": "IP Security (IPsec)",
+      "page_range": [17],
+      "text": "Accepted algorithms for IPsec:\nFor authentication, Authentication Header (AH) and Encapsulating Security Payload (ESP) must be used with one of the following MAC:\n  HMAC-SHA2-384, HMAC-SHA3-256, HMAC-SHA3-384 for MODERATE.\n  HMAC-SHA3-512 for ADVANCED.\n\nFor confidentiality, ESP must be used with one of the above MAC algorithms and one of the following encryption algorithms:\n  AES-CTR\n  CAMELLIA-CTR\n\nAs an alternative, an authenticated encryption can be used from the following modes:\n  AES-CCM_* (with * as size in bytes of Integrity Check Value (ICV)): 12 or 16 bytes is accepted.\n  CAMELLIA-CCM_* (with * as size in bytes of ICV): 12 or 16 bytes is accepted.\n  AES-GCM_* (with * as size in bytes of ICV): 12 or 16 bytes is accepted.",
+      "depends_on": []
     },
-
     {
       "section_id": "SEC_0016",
-      "title": "Lightweight Crypto Algorithms",
-      "start_page": 12,
-      "end_page": 13,
-      "text": "2.4 Lightweight Crypto Algorithms\nAccepted lightweight algorithms (on limited systems with constrained resources, where\nthe use of conventional cryptographic standards is not applicable):\n• Block ciphers (ISO/IEC 29192-2)\n. PRESENT, 80-bit or 128-bit key lengths.   3 Curve448 is accepted for ADVANCED even though it operates at 224-bit security level because of its increased perfor­\nmance, resistance to a wide-range of side channel attacks and ease of implementation.\nDocument Classification: Open\nThe National Cryptographic Standards\nSharing Notice: White\n. CLEFIA, 128-bit, 192-bit or 256-bit key lengths.\n• Stream ciphers (ISO/IEC 29192-3)\n. Enocoro, 80-bit or 128-bit key lengths.\n. Trivium, 80-bit key length.\n• Asymmetric mechanisms (ISO/IEC 29192-4)\n. Unilateral authentication mechanisms.\n. ALIKE key exchange.\n. Identity-based signature.\n• Hash functions (ISO/IEC 29192-5)\n. PHOTON, 80-bit, 128-bit, 160-bit, 224-bit or 256-bit output sizes.\n. SPONGENT, 88-bit, 128-bit, 160-bit, 224-bit or 256-bit output sizes.\n. Lesamnta-LW, 256-bit output size.\n• Message Authentication Code (MAC) as in ISO/IEC 29192-6\n. Tsudik’s keymode, hash-based.\n. Chaskey12, 128-bit key length.\nDocument Classification: Open\nThe National Cryptographic Standards\nSharing Notice: White",
-      "chapter": "2",
-      "section": "2.4",
-      "control": "2.4.1"
+      "section": "4.2",
+      "title": "Transport Layer Security (TLS)",
+      "page_range": [17, 18],
+      "text": "Accepted TLS versions:\nIt is acceptable to use TLS version 1.2 cipher suites with the strongest cryptographic primitives and schemes to ensure compatibility with Section 2 and 3 in addition to implementing a configuration that does not allow downgrading.\nWhile the transition to the new TLS 1.3 standard will take some additional time, it is recommended for future applications.\n\nAccepted cipher suites for TLS 1.2:\n  TLS_*1_*2_WITH_AES_128_CCM, TLS_*1_*2_WITH_AES_128_CCM_8, TLS_*3_*4_WITH_Camellia_256_GCM_SHA-384, TLS_*3_*4_WITH_AES_256_GCM_SHA-384 for MODERATE.\n  TLS_*3_*4_WITH_AES_256_CCM, TLS_*3_*4_WITH_AES_256_CCM_8 for ADVANCED.\n  *1 as the underlying key agreement scheme: ECDH, ECDHE, DH or DHE\n  *2 as the underlying signature scheme: EC_DSA, RSA or DSS\n  *3 as the underlying key agreement scheme: ECDH or ECDHE\n  *4 as the underlying signature scheme: EC_DSA\n\nAccepted cipher suites for TLS 1.3:\n  TLS_AES_256_GCM_SHA384 for both MODERATE and ADVANCED.",
+      "depends_on": []
     },
-
-
+    {
+      "section_id": "SEC_0017",
+      "section": "4.3",
+      "title": "DNSSEC (Domain Name System Security)",
+      "page_range": [18],
+      "text": "Accepted algorithms and schemes for zone data signing:\n  ECDSA_P384_SHA384 for both MODERATE and ADVANCED.\n\nAccepted Message authentication algorithms:\n  HMAC-SHA384 for MODERATE.\n  HMAC-SHA512 for ADVANCED.",
+      "depends_on": []
+    },
     {
       "section_id": "SEC_0018",
-      "title": "Block Cipher Modes of Operation",
-      "start_page": 14,
-      "end_page": 14,
-      "text": "3.1 Block Cipher Modes of Operation\nAccepted block cipher modes of operation:\n• Counter Mode (CTR) as in NIST SP800-38A.\n• Cipher Block Chaining (CBC) as in NIST SP800-38A.\n• XEX Tweakable Block Cipher with Ciphertext Stealing (XTS-AES) as in NIST SP800-38E.\n• Output Feedback (OFB) as in NIST SP 800-38A.\n• Cipher Feedback (CFB) as in NIST SP 800-38A.\nCommon notes:\n• Cipher Block Chaining (CBC) is only accepted for MODERATE.",
-      "chapter": "3",
-      "section": "3.1",
-      "control": "3.1.1"
+      "section": "4.4",
+      "title": "Secure Shell (SSH)",
+      "page_range": [18],
+      "text": "Accepted SSH versions: SSH-2.\n\nAccepted SSH encryption and MAC algorithms for SSH-2:\n  AEAD_AES_128_GCM for MODERATE.\n  AEAD_AES_256_GCM for ADVANCED.",
+      "depends_on": []
     },
     {
       "section_id": "SEC_0019",
-      "title": "Message Authentication Codes (MAC)",
-      "start_page": 14,
-      "end_page": 14,
-      "text": "3.2 Message Authentication Codes (MAC)\nAccepted message authentication codes:\n• Cipher-based MAC (CMAC) as in NIST SP 800-38B\n. The scheme should be used for at most 248 messages.\n. Used only in applications where no party learns all-0 string enciphering in the block\ncipher underlying the MAC.\n. A tag length of at least 96 bit with protected authentication keys.\n• Hash-based MAC (HMAC) as in FIPS PUB 198-1\n. A tag length of at least 96 bit with protected authentication keys.\n. To be used with SHA-2 and SHA-3 (as mentioned in Sub-Section 2.3).",
-      "chapter": "3",
-      "section": "3.2",
-      "control": "3.2.1"
+      "section": "4.5",
+      "title": "Bluetooth",
+      "page_range": [18, 19],
+      "text": "Accepted Bluetooth versions: 4.1 or higher with the following requirements (NIST SP 800-121r2):\n  Use Security Mode 4, Level 4 (Authenticated link key using secure connection).\n  Use encryption algorithm AES-CCM.\n  Use secure connection feature with P-256 elliptic curve for link key generation.\n  Use encryption Mode 3 (all traffic is encrypted).\n  For low energy feature of Bluetooth, use version 4.2 or higher with Low Energy Security Mode 1 Level 4.\n\nCommon notes:\n  Organizations must use the strongest Bluetooth security mode that is available for their devices.",
+      "depends_on": []
     },
     {
       "section_id": "SEC_0020",
-      "title": "Authenticated Encryption with Associated Data (AEAD)",
-      "start_page": 14,
-      "end_page": 14,
-      "text": "3.3 Authenticated Encryption with Associated Data (AEAD)\nAccepted authenticated encryption with associated data:\n• Galois Counter Mode (GCM) as in NIST SP 800-38D\n. A nonce generation length of at least 96 bits.\n. IV to be unique within the key change period.\n. The use of short authentication tags is not accepted.\n• Counter with CBC-MAC (CCM) as in NIST SP 800-38C.",
-      "chapter": "3",
-      "section": "3.3",
-      "control": "3.3.1"
+      "section": "4.6",
+      "title": "Universal Mobile Telecommunications System (UMTS) / Long Term Evolution (LTE) / 5G",
+      "page_range": [19],
+      "text": "Accepted algorithms:\n  For UMTS, 128-UEA1 and 128-UIA1 must be used.\n  For LTE, 128-EEA2 and 128-EIA2 must be used.\n  For 5G, 128-NEA2 and 128-NIA2 must be used.\n  EIA0 and NIA0 can be used in the exceptional case of unauthenticated emergency calls in limited service mode.\n  Only the cryptographic primitives and schemes listed in sections 2 and 3 must be used. However, KASUMI and both ECIES profiles are accepted, including the elliptic curves used in the profile, which are accepted as exceptions, solely for use under 3GPP systems.",
+      "depends_on": []
     },
-
-
     {
       "section_id": "SEC_0021",
-      "title": "Key Wrap Functions",
-      "start_page": 14,
-      "end_page": 15,
-      "text": "3.4 Key Wrap Functions\nAccepted key wrap functions:\n• Key Wrap (KW) as in NIST SP 800-38 F.\n• Key Wrap with Padding (KWP) as in NIST SP 800-38 F.\nCryptographic Schemes\nDocument Classification: Open\nThe National Cryptographic Standards\nSharing Notice: White",
-      "chapter": "3",
-      "section": "3.4",
-      "control": "3.4.1"
+      "section": "4.7",
+      "title": "WPA (Wi-Fi Protected Access)",
+      "page_range": [19],
+      "text": "Accepted versions:\n  WPA3-Enterprise\n\nCommon notes:\n  WPA3-Enterprise is the only accepted version and must be applied once it is available.",
+      "depends_on": []
     },
     {
       "section_id": "SEC_0022",
-      "title": "Key Derivation Functions (KDF)",
-      "start_page": 15,
-      "end_page": 15,
-      "text": "3.5 Key Derivation Functions (KDF)\nAccepted key derivation functions:\n• RFC 5869 (HKDF)4.\n• IKE-v2-KDF4.\n• TLS-v1.2-KDF4.\n• X9.63-KDF4.\nKDFs must comply with one of the following:\n• NIST-800-56 A/B KDF (Single Step)4.\n• NIST-800-56 C KDF (Extract-then-expand)4.\n• NIST-800-108.\n\nKey Agreement and Key Transport",
-      "chapter": "3",
-      "section": "3.5",
-      "control": "3.5.1"
+      "section": "4.8",
+      "title": "Kerberos Protocol",
+      "page_range": [19],
+      "text": "Accepted Kerberos encryption types:\n  CAMELLIA128-CTS-CMAC, AES256-CTS-HMAC-SHA384 for MODERATE.\n  CAMELLIA256-CTS-CMAC for ADVANCED.",
+      "depends_on": []
     },
-
-
     {
       "section_id": "SEC_0023",
-      "title": "Key Agreement and Key, Transport. Symmetric Schemes",
-      "start_page": 15,
-      "end_page": 15,
-      "text": "3.6.1 Symmetric Schemes\nAccepted key agreement schemes:\n• Symmetric key agreement schemes must rely solely on shared long-term secrets.\nAccepted key transport schemes:\n• All symmetric encryption schemes and primitives can be used as per Section 2 and Section 3.\n• Combination of an encryption scheme with a MAC in encrypt-then-MAC mode\n(refer to Section 2 and Section 3).",
-      "chapter": "3",
-      "section": "3.6",
-      "control": "3.6.1"
+      "section": "5.1",
+      "title": "Algorithms for Certificates",
+      "page_range": [20],
+      "text": "Accepted algorithms for Root CA certificates:\nRSA\n  At least 4096 bits for key length.\nElliptic Curve Cryptography (ECC)\n  NIST P-384, NIST P-521, Curve448, BrainpoolP384r1 or BrainpoolP512r1.\n\nAccepted algorithms for Intermediate and End User certificates:\nRSA\n  At least 3072 bits for key length.\nECC\n  NIST P-256, NIST P-384, NIST P-521, Curve25519, Curve448, BrainpoolP256r1, BrainpoolP384r1 or BrainpoolP512r1.\n\nCommon notes:\n  Certificates, Certificate Revocation Lists (CRLs) and Authority Revocation Lists (ARLs) must comply with X.509 PKI Certificate (RFC 5280).\n  SHA-2 or SHA-3 families of hash algorithms must be used as mentioned in Section 2.\n  Match the strength of the asymmetric key algorithms with the strength of the hash algorithm.",
+      "depends_on": []
     },
     {
       "section_id": "SEC_0024",
-      "title": "Key Agreement and Key, Transport.  Asymmetric Schemes: Key Exchange Algorithms",
-      "start_page": 15,
-      "end_page": 15,
-      "text": "3.6.2 Asymmetric Schemes: Key Exchange Algorithms\nAccepted key exchange algorithms:\n• Diffie-Hellman (DH) as in RFC 3526\n. At least 3072 bits for key length for MODERATE.\n. Not accepted for ADVANCED.\n• Elliptic Curve Diffie-Hellman (ECDH) as in NIST SP 800-56A\n. 256-bit to 384-bit key for MODERATE.\n. 512-bit key or using Curve448 for ADVANCED.\n. With forward secrecy and authenticated key establishment implementation.\n• RSA Key Establishment (NIST 800-56B)\n. At least 3072 bits for key length for MODERATE.\n. Not accepted for ADVANCED.",
-      "chapter": "3",
-      "section": "3.6",
-      "control": "3.6.2"
+      "section": "5.2",
+      "title": "Validity of the Certificates",
+      "page_range": [20],
+      "text": "Accepted Root CA certificate validity life span:\n  At most 20 years.\n\nAccepted Intermediate CA, Subordinate CA and Issuing CA certificate validity life span:\n  At most 10 years.\n\nAccepted end user certificate validity life span:\n  At most 5 years for MODERATE.\n  At most 3 years for ADVANCED.",
+      "depends_on": []
     },
-
     {
       "section_id": "SEC_0025",
-      "title": "European Commission, “eCrypt Algorithms, Key Size and Protocols Report,” in eCrypt Algorithms, Key Size and Protocols",
-      "start_page": 15,
-      "end_page": 16,
-      "text": "4 European Commission, “eCrypt Algorithms, Key Size and Protocols Report,” in eCrypt Algorithms, Key Size and Protocols\nReport, 2018.\nDocument Classification: Open\nThe National Cryptographic Standards\nSharing Notice: White",
-      "parent_id": null
+      "section": "6.1",
+      "title": "Key Protection and Lifetime",
+      "page_range": [21],
+      "text": "Accepted key protection lifetime:\nUsing Hardware cryptographic modules:\n  Private keys should not be valid for more than 5 years (this does not limit CA certificates' lifetime) for MODERATE.\n  Private keys should not be valid for more than 3 years (this does not limit CA certificates' lifetime) for ADVANCED.\nUsing Software cryptographic modules:\n  Private keys must not be valid longer than 2 years for MODERATE.\n  Not accepted for ADVANCED.",
+      "depends_on": []
     },
-
-
-
     {
       "section_id": "SEC_0026",
-      "title": "Hybrid Encryption Schemes",
-      "start_page": 16,
-      "end_page": 16,
-      "text": "3.7 Hybrid Encryption Schemes\nAccepted hybrid encryption schemes:\n• Elliptic Curve Integrated Encryption Scheme (ECIES)\n. For MODERATE and ADVANCED.\n• Discrete Logarithm Integrated Encryption Scheme (DLIES)\n. For MODERATE.\n. Not accepted for ADVANCED.\n• RSA with Optimal Asymmetric Encryption Padding (RSA-OAEP) as in PKCS #1 v2.1. RSA\n. For MODERATE.\n. Not accepted for ADVANCED.",
-      "chapter": "3",
-      "section": "3.7",
-      "control": "3.7.1"
-    },
-
-
-    {
-      "section_id": "SEC_0027",
-      "title": "Public Key Signatures",
-      "level": 2,
-      "start_page": 16,
-      "end_page": 16,
-      "text": "3.8 Public Key Signatures\nAccepted public key signatures:\n• Digital Signature Algorithm (DSA) as in FIPS PUB 186-4\n. At least 3072 bits for modulus key for MODERATE.\n. Not accepted for ADVANCED.\n• Elliptical Curve Digital Signature Algorithm (ECDSA) as in FIPS PUB 186-4\n. 256-bit to 384-bit key for MODERATE.\n. 512-bit key or using Curve448 for ADVANCED.\n. Accepted message authentication algorithms will be dependent on system and use case.\n• RSA signatures (RSA-PSS and RSA Digital Signature Scheme) as in PKCS, RSA\nCryptographic Standard v2.2\n. RSA-PSS and RSA Digital Signature Scheme (RSA-DS2) are accepted5, 6.\n. Modulus lengths of 3072 bits for MODERATE.\n. Not accepted for ADVANCED.\n• Merkle signatures\n. Accepted hash functions described in Section 2 must be used.\n. The required pseudo-random function family must be constructed with the HMAC\nconstruction based on the hash function used.\n5 PKCS, “RSA Cryptographic Standard. Version 2.2,” 2012.   6 ISO, “ISO/IEC 9796-2-2010. Information technology - Security techniques - Digital Signature Schemes. Part 2: Integer\nFactorization based mechanisms.,” 2010.\nDocument Classification: Open\nThe National Cryptographic Standards\nSharing Notice: White\nIn this section, a list of prevalent cryptography protocols is presented along with the\nrequirements for using them. Any protocols that are not listed here must follow the\naccepted primitives and schemes in Section 2 and Section 3. In addition, future versions of\nprotocols listed below will be accepted if they follow the accepted primitives and schemes\nin Section 2 and Section 3.",
-      "chapter": "3",
-      "section": "3.8",
-      "control": "3.8.1"
-    },
-
-
-    {
-      "section_id": "SEC_0029",
-      "title": "IP Security (IPsec)",
-      "start_page": 17,
-      "end_page": 17,
-      "text": "4.1 IP Security (IPsec)\nAccepted algorithms for IPsec:\nFor authentication, Authentication Header (AH) and Encapsulating Security Payload\n(ESP) must be used with one of the following MAC:\n• HMAC-SHA2-384, HMAC-SHA3-256, HMAC-SHA3-384 for MODERATE.\n• HMAC-SHA3-512 for ADVANCED.\nFor confidentiality, ESP must be used with one of the above MAC algorithms and one of\nthe following encryption algorithms7 :\n\n• AES-CTR\n• AES-CTR. • CAMELLIA-CTR\nAs an alternative to use the above authentication and confidentiality processes, an\nauthenticated encryption can be used from the following modes7:\n• AES-CCM_* (with * as size in bytes of Integrity Check Value (ICV))\n. 12 or 16 bytes is accepted.\n• CAMELLIA-CCM_* (with * as size in bytes of ICV)\n. 12 or 16 bytes is accepted.\n• AES-GCM_* (with * as size in bytes of ICV)\n. 12 or 16 bytes is accepted.",
-      "chapter": "4",
-      "section": "4.1",
-      "control": "4.1.1"
-    },
-    
-    {
-      "section_id": "SEC_0031",
-      "title": "Transport Layer Security (TLS)",
-      "level": 2,
-      "start_page": 17,
-      "end_page": 18,
-      "text": "4.2 Transport Layer Security (TLS)\nAccepted TLS versions:\n• It is acceptable to use TLS version 1.2 cipher suites with the strongest cryptographic\nprimitives and schemes to ensure compatibility with Section 2 and 3 in addition to\nimplementing a configuration that does not allow downgrading8.\n7 European Union Agency for Network and Information Security “Study on cryptographic protocols,” 2014.\n8 E. Ronen, “The 9 Lives of Bleichenbacher’s CAT. New Cache Attacks on TLS Implementations.,” 2018.\nCommonly Used Cryptographic Protocols\nDocument Classification: Open\nThe National Cryptographic Standards\nSharing Notice: White\n• While the transition to the new TLS 1.3 standard will take some additional time, it is\nrecommended for future applications.\nAccepted cipher suites for TLS 1.2:\n• TLS_*1_*2_WITH_AES_128_CCM, TLS_*1_*2_WITH_AES_128_CCM_8,\nTLS_*3_*4_WITH_Camellia_256_GCM_SHA-384, TLS_*3_*4_WITH_AES_256_GCM_\nSHA-384 for MODERATE.\n• TLS_*3_*4_WITH_AES_256_CCM, TLS_*3_*4_WITH_AES_256_CCM_8 for ADVANCED.\nWith the following:\n*1 as the underlying key agreement scheme: ECDH, ECDHE, DH or DHE\n*2 as the underlying signature scheme: EC_DSA, RSA or DSS\n*3 as the underlying key agreement scheme: ECDH or ECDHE\n*4 as the underlying signature scheme: EC_DSA\nAccepted cipher suites for TLS 1.3:\n• TLS_AES_256_GCM_SHA384 for both MODERATE and ADVANCED.",
-      "chapter": "4",
-      "section": "4.2",
-      "control": "4.2.1"
-    },
-    {
-      "section_id": "SEC_0032",
-      "title": "DNSSEC (Domain Name System Security)",
-      "level": 2,
-      "start_page": 18,
-      "end_page": 18,
-      "text": "4.3 DNSSEC (Domain Name System Security)\nAccepted algorithms and schemes for zone data signing:\n• ECDSA_P384_SHA384 for both MODERATE and ADVANCED9, 10 .\nAccepted Message authentication algorithms:\n• HMAC-SHA384 for MODERATE.\n• HMAC-SHA512 for ADVANCED9.",
-      "chapter": "4",
-      "section": "4.3",
-      "control": "4.3.1"
-    },
-    {
-      "section_id": "SEC_0033",
-      "title": "Secure Shell (SSH)",
-      "start_page": 18,
-      "end_page": 18,
-      "text": "4.4 Secure Shell (SSH)\nAccepted SSH versions: SSH-2.\nAccepted SSH encryption and MAC algorithms for SSH-2:\n• AEAD_AES_128_GCM for MODERATE.\n• AEAD_AES_256_GCM for ADVANCED.",
-      "chapter": "4",
-      "section": "4.4",
-      "control": "4.4.1"
-    },
-    {
-      "section_id": "SEC_0034",
-      "title": "Bluetooth",
-      "start_page": 18,
-      "end_page": 18,
-      "text": "4.5 Bluetooth\nAccepted Bluetooth versions: 4.1 or higher with the following requirements (NIST SP 800-121r2):\n• Use Security Mode 4, Level 4 (Authenticated link key using secure connection).\n• Use encryption algorithm AES-CCM.\n• Use secure connection feature with P-256 elliptic curve for link key generation.\n• Use encryption Mode 3 (all traffic is encrypted).\n• For low energy feature of Bluetooth, use version 4.2 or higher with Low Energy\nSecurity Mode 1 Level 4.  9 As SHA3-512 is not implemented in this protocol, this is a special case for ADVANCED. Also HMAC-SHA-512 is not\nvulnerable to Length Extension Attacks.\n10 As ECC with key length of 512 bits is not implemented in this protocol, this is a special case for ADVANCED.\nDocument Classification: Open\nThe National Cryptographic Standards\nSharing Notice: White\nCommon notes:\n• Organizations must use the strongest Bluetooth security mode that is available for their devices.",
-      "chapter": "4",
-      "section": "4.5",
-      "control": "4.5.1"
-    },
-    
-    {
-      "section_id": "SEC_0036",
-      "title": "Universal Mobile Telecommunications System (UMTS) / Long Term",
-      "start_page": 19,
-      "end_page": 19,
-      "text": "4.6 Universal Mobile Telecommunications System (UMTS) / Long Term\nEvolution (LTE) / 5G\nAccepted algorithms:\n• For UMTS, 128-UEA1 and 128-UIA1 must be used.\n• For LTE, 128-EEA2 and 128-EIA2 must be used.\n• For 5G, 128-NEA2 and 128-NIA2 must be used.\n• EIA0 and NIA0 can be used in the exceptional case of unauthenticated emergency\ncalls in limited service mode.\n• Only the cryptographic primitives and schemes listed in sections 2 and 3 must be\nused. However, KASUMI and both ECIES profiles are accepted, including the elliptic\ncurves used in the profile, which are accepted as exceptions, solely for use under 3GPP systems.",
-      "chapter": "4",
-      "section": "4.6",
-      "control": "4.6.1"
-    },
-    {
-      "section_id": "SEC_0037",
-      "title": "WPA (Wi-Fi Protected Access)",
-      "start_page": 19,
-      "end_page": 19,
-      "text": "4.7 WPA (Wi-Fi Protected Access)\nAccepted versions:\n• WPA3-Enterprise\nCommon notes:\n• WPA3-Enterprise is the only accepted version and must be applied once it is available.",
-      "chapter": "4",
-      "section": "4.7",
-      "control": "4.7.1"
-    },
-    {
-      "section_id": "SEC_0038",
-      "title": "Kerberos Protocol",
-      "level": 2,
-      "start_page": 19,
-      "end_page": 20,
-      "text": "4.8 Kerberos Protocol\nAccepted Kerberos encryption types:\n• CAMELLIA128-CTS-CMAC, AES256-CTS-HMAC-SHA384 for MODERATE.\n• CAMELLIA256-CTS-CMAC for ADVANCED",
-      "chapter": "4",
-      "section": "4.8",
-      "control": "4.8.1"
-    },
-    {
-      "section_id": "SEC_0039",
-      "title": "• RSA",
-      "level": 1,
-      "start_page": 20,
-      "end_page": 20,
-      "text": ".Algorithms for Certificates\n5.1 Algorithms for Certificates\nAccepted algorithms for Root CA certificates:• RSA\n. At least 4096 bits for key length.\n• Elliptic Curve Cryptography (ECC)\n. NIST P-384, NIST P-521, Curve448, BrainpoolP384r1 or BrainpoolP512r1.\nAccepted algorithms for Intermediate and End User certificates:\n\n• RSA\n• RSA\n. At least 3072 bits for key length. • ECC\n. NIST P-256, NIST P-384, NIST P-521, Curve25519, Curve448, BrainpoolP256r1,\nBrainpoolP384r1 or BrainpoolP512r1.\nCommon notes:\n• Certificates, Certificate Revocation Lists (CRLs) and Authority Revocation Lists\n(ARLs) must comply with X.509 PKI Certificate (RFC 5280).\n• SHA-2 or SHA-3 families of hash algorithms must be used as mentioned in Section 2.\n• Match the strength of the asymmetric key algorithms with the strength of the hash algorithm.",
-      "chapter": "5",
-      "section": "5.1",
-      "control": "5.1.1"
-    },
-    
-    {
-      "section_id": "SEC_0041",
-      "title": "Validity of the Certificates",
-      "level": 2,
-      "start_page": 20,
-      "end_page": 20,
-      "text": "5.2 Validity of the Certificates\nAccepted Root CA certificate validity life span:\n• At most 20 years11.\nAccepted Intermediate CA, Subordinate CA and Issuing CA certificate validity life span:\n• At most 10 years11.\nAccepted end user certificate validity life span:\n• At most 5 years for MODERATE11.\n• At most 3 years for ADVANCED11.",
-      "chapter": "5",
-      "section": "5.2",
-      "control": "5.2.1"
-    },
-
-    {
-      "section_id": "SEC_0042",
-      "title": "NIST, “X.509 Certificate Policy for the U.S. Federal PKI Common Policy Framework, Federal Public Key Infrastructure",
-      "level": 1,
-      "start_page": 20,
-      "end_page": 21,
-      "text": "11 NIST, “X.509 Certificate Policy for the U.S. Federal PKI Common Policy Framework, Federal Public Key Infrastructure\nPolicy Authority,” NIST, 2015\nPublic Key Infrastructure (PKI(\nDocument Classification: Open\nThe National Cryptographic Standards\nSharing Notice: White",
-      "parent_id": null
-    },
-
-    {
-      "section_id": "SEC_0043",
-      "title": "Key Protection and Lifetime",
-      "level": 2,
-      "start_page": 21,
-      "end_page": 21,
-      "text": "6.1 Key Protection and Lifetime\nAccepted key protection lifetime:\n• Using Hardware cryptographic modules:\n. Private keys should not be valid for more than 5 years (this does not limit CA\ncertificates’ lifetime) for MODERATE12.\n. Private keys should not be valid for more than 3 years (this does not limit CA\ncertificates’ lifetime) for ADVANCED12.\n• Using Software cryptographic modules:\n. Private keys must not be valid longer than 2 years for MODERATE12.\n. Not accepted for ADVANCED.",
-      "chapter": "6",
-      "section": "6.1",
-      "control": "6.1.1"
-    },
-    {
-      "section_id": "SEC_0044",
-      "title": "KLM Processes",
-      "level": 2,
-      "start_page": 21,
-      "end_page": 21,
-      "text": "6.2 KLM Processes\nTable 1 lists the required KLM processes from generation till destruction.\nTable 1 KLM Processes Requirements\nRequirements\nKLM processes\n• Keys (secret and private) must not be vulnerable to prediction or bias.\n• Weak keys must not be used.\n• Private and public keys require prime number generation with extra\nmathematical properties.\nKey Generation\n• Keys must be associated with their owner (user) with a certificate.\n• Root certificates must be distributed to relying parties and signatories.\n• A trusted CA must be used.\nKey\nRegistration/\nCertification\n• Keys must be distributed to their users securely and must be under\nthe users control.\n• Keys must be transported securely by protecting their confidentiality\nand authenticity.\n• All copies of keys must be securely installed and stored.\n• Public keys must be transported and authenticity (but not privacy)\nmust be protected by using certificates.\n• Private keys must be protected and authorized by the owner/ third\nparty or CA.\nKey Distribution\nand Installation.                        • Keys must be protected against unauthorized use during their lifetimes.\n• Keys must be protected against misuse from the owners, with key storage\non secure hardware and/or secure software (authorization checks).\nKey Use\n• Organizations must require secure backups of keys (for internal or law\nenforcement use) when encryption is supported.\n• Keys used for non-repudiation must be under the sole control of\nthe user.\nKey Storage\n• In distributed systems, special measures such as updated versions of the\nCertificate Revocation List (CRL) and the Online Certificate Status Protocol\n(OCSP) must be implemented to avoid relying on keys that have expired.\n• Key validation must be done by checking the CRL or OCSP servers.\nKey Revocation/\nValidation\n• The archival process must be secured, and confidentiality must be ensured\nto preserve the secrecy of information encrypted with archived keys.\n• Expired keys must be archived to keep old data accessible when\nencryption is supported.\n• Archival systems must follow the retention periods as per relevant\nregulations.\nKey Archive\n• When key lifetime expires and there is no need for it to be archived or\nstored, it must be removed from hardware via a secure deletion process.\n• Media storage systems storing keys must be sanitized before disposal\nusing a process compliant with NIST SP 800-88r1 or NSA/CSS Storage\nDevice Sanitization Manual.\nKey Destruction\n• There must be accounting for all asymmetric keys.\n• Use of asymmetric keys must be monitored.\n• There must be accounting for key use.\nKey Accounting\nDocument Classification: Open\nThe National Cryptographic Standards\nSharing Notice: White",
-      "chapter": "6",
       "section": "6.2",
-      "control": "6.2.1"
-    },
-    
-    {
-      "section_id": "SEC_0046",
-      "title": "Pseudo Random Number Generation (PRNG)",
-      "level": 2,
-      "start_page": 23,
-      "end_page": 23,
-      "text": "7.1 Pseudo Random Number Generation (PRNG)\nPseudo Random Number Generation is required in several aspects of cryptography,\nincluding the creation of asymmetric key-pairs and symmetric keys13.\nSoftware library functions, such as random()in the programming languages, must not\nbe used, as such functions tend to be based on weak Linear Congruential Generators\n(LCG). Dedicated cryptographic PRNG implementations are required for cryptographic\napplications. The PRNGs should be tested with test packages, such as the randomness\ntests from NIST 14 and the Dieharder test package15. International standards such as ISO\n28640:2010 \"Random variate generation methods\" and NIST SP 800-90A \"Recommendation\nfor Random Number Generation Using Deterministic Random Bit Generators\" provide\nsome recommendations and requirements for the PRNG.",
-      "chapter": "7",
-      "section": "7.1",
-      "control": "7.1.1"
-    },
-    {
-      "section_id": "SEC_0047",
-      "title": "Post-Quantum Cryptography",
-      "level": 2,
-      "start_page": 23,
-      "end_page": 23,
-      "text": "7.2 Post-Quantum Cryptography\nMany commonly used cryptosystems are expected to be broken by quantum capabilities\nonce quantum computers exist with enough qubits. That will have a major impact on\npopular public-key cryptographic systems, including RSA, DSA and ECDSA16.\nEven though quantum computers with enough qubits are not yet known to be available\nor used commercially, the risk they impose on the confidentiality of encrypted data is\nsignificant. Such a risk is acknowledged and it makes it very important to consider Post-\nQuantum Cryptography.\nHowever, no international standards for Post-Quantum Cryptography are available yet,\nand it is expected that they will be issued by international standardization bodies over\nthe next three years. Post-Quantum Cryptography will be considered in the upcoming\nversions of the NCS.",
-      "chapter": "7",
-      "section": "7.2",
-      "control": "7.2.1"
-    },
-
-    {
-      "section_id": "SEC_0048",
-      "title": "European Commission, “eCrypt Algorithms, Key Size and Protocols Report,” in eCrypt Algorithms, Key Size and Protocols",
-      "level": 1,
-      "start_page": 23,
-      "end_page": 23,
-      "text": "13 European Commission, “eCrypt Algorithms, Key Size and Protocols Report,” in eCrypt Algorithms, Key Size and Protocols\nReport, 2018.",
-      "parent_id": null
-    },
-    {
-      "section_id": "SEC_0049",
-      "title": "NIST, “Special Publication 800-22. A Statistical Test Suite for Random and Pseudorandom Number Generators for Cryp­",
-      "level": 1,
-      "start_page": 23,
-      "end_page": 23,
-      "text": "14 NIST, “Special Publication 800-22. A Statistical Test Suite for Random and Pseudorandom Number Generators for Cryp­\ntographic Applications,” NIST, 2010.",
-      "parent_id": null
-    },
-    {
-      "section_id": "SEC_0050",
-      "title": "R. Brown, “Robert G. Brown’s General Tools Page,” 2019. [Online]. Available: http://webhome.phy.duke.edu/~rgb/General/",
-      "level": 1,
-      "start_page": 23,
-      "end_page": 24,
-      "text": "15 R. Brown, “Robert G. Brown’s General Tools Page,” 2019. [Online]. Available: http://webhome.phy.duke.edu/~rgb/General/\ndieharder.php.\n16 NIST, “NISTIR 8105. Report on Post-Quantum Cryptography,” 2016.\nAppendices\nDocument Classification: Open\nThe National Cryptographic Standards\nSharing Notice: White",
-      "parent_id": null
-    },
-
-
-
-    {
-      "section_id": "SEC_0051",
-      "title": "Side-Channel Attacks",
-      "level": 2,
-      "start_page": 24,
-      "end_page": 24,
-      "text": "7.3 Side-Channel Attacks\nSide-channel attacks on a cryptographic system make use of the results of the system’s\nphysical measurements, such as energy consumption, electromagnetic emanation and time\nconsumption, in order to gain insight into sensitive data17. Attacks can be carried out\nby remote and passive adversaries which are difficult to be detected and may lead to a\nsignificant and unnoticed leakage of data.\nIn order to prevent these attacks, the first step to minimize information leakage is to\nensure that for the side channel signals, the signal-to-noise ratio is as low as possible.\nFurther, it must also be ensured that the information leakages from side-channels are not\nuseful for the adversaries18. For example, eliminate any correlation between the binary\nrepresentation of secret key and side channel signals, i.e. use dummy operations to mask\nany potential correlation.\nIn order to minimize the risk of side-channel attacks, it is important to satisfy the following\nrequirements19:\n• Cryptographic operations must be performed in certified hardware components, e.g.\nsmart cards to protect the secret and/or private keys.\n• Analyse thoroughly the effects of such side channels on certified hardware components in\na specialized laboratory during the development process.\n• Protect ciphertexts using MAC and verify ciphertexts before performing any other cryptographic\noperations.\nSide-channel attacks cover a wide range of threat scenarios. Therefore, an extensive review\nof relevant threat scenarios should be carried out for the proper secure implementation.\n17 P. C. Kocher, J. Jaffe and B. Jun, “Differential power analysis,” in Differential power analysis, 2011.",
-      "chapter": "7",
-      "section": "7.3",
-      "control": "7.3.1"
-    },
-
-    {
-      "section_id": "SEC_0052",
-      "title": "A. Vega, P. Bose and A. Buyuktosunoglu, \"Rugged Embedded Systems: Computing in Harsh Environments\", Morgan",
-      "level": 1,
-      "start_page": 24,
-      "end_page": 25,
-      "text": "18 A. Vega, P. Bose and A. Buyuktosunoglu, \"Rugged Embedded Systems: Computing in Harsh Environments\", Morgan\nKaufmann, 2017.\n19 BSI, \"Cryptographic Mechanisms: Recommendations and Key Lengths\", BSI - Technical Guideline, 2020.\nDocument Classification: Open\nThe National Cryptographic Standards\nSharing Notice: White"
-      
-    },
-
-    {
-      "section_id": "SEC_0053",
-      "title": "Definitions",
-      "level": 2,
-      "start_page": 25,
-      "end_page": 25,
-      "text": "7.4 Definitions\nTable 2- Terms and Definitions20\nDefinitions\nTerms\nA cryptographic algorithm that uses one cryptographic key for encryption,\nand another key for decryption. The two keys are called private and public keys.\nAsymmetric\nAlgorithm\nVerifying the identity of a user, process or device, often as a prerequisite\nto allowing access to resources in a system.\nAuthentication\nThe property of being genuine and being able to be verified and trusted.\nAuthenticity\nA symmetric key cipher method that segments data into groups or blocks,\nthen encrypts each one separately.\nBlock Cipher\nAlgorithm\nA set of data that uniquely identifies an entity’s public key and other\ninformation that is digitally signed by a Certification Authority (i.e., a\ntrusted party), thereby binding the public key to the owner.\nCertificate\nA list of revoked certificates issued by a Certification Authority.\nCertificate\nRevocation List. (CRL)\nA trusted entity that is responsible for issuing and revoking public key\ncertificates.\nCertification\nAuthority (CA)\nTwo or more distinct inputs produce the same output.\nCollision\nA property of preventing information from being available or disclosed to\nunauthorized individuals, entities or processes.\nConfidentiality\nA low-level cryptographic algorithm used as a basic building block for\nhigher-level cryptographic algorithms.\nCryptographic\nPrimitive\nPrinciples, means and methods of applying data transformation algorithms\nfor security purposes including integrity, confidentiality, authentication,\nauthenticity and non-repudiation.\nCryptography\nCybersecurity is the protection of networks, IT systems, operational\ntechnologies systems and their components of hardware and software,\ntheir services and the data they contain, from any penetration, disruption,\nunauthorized modification, access, use or exploitation. The concept of\ncybersecurity also includes information security and digital security, etc 21.\nCybersecurity\nPublic-key cryptographic methods that use operations in an elliptic curve\ngroup.\nElliptic Curve\nCryptography",
-      "chapter": "7",
-      "section": "7.4",
-      "control": "7.4.1"
-    },
-    {
-      "section_id": "SEC_0054",
-      "title": "(CRL)",
-      "level": 1,
-      "start_page": 25,
-      "end_page": 25,
-      "text": "",
-      "parent_id": null
-    },
-    {
-      "section_id": "SEC_0055",
-      "title": "(ECC)",
-      "level": 1,
-      "start_page": 25,
-      "end_page": 26,
-      "text": "(ECC)\n20 NIST Glossary, unless otherwise stated for a specific term.\n21 Official NCA Charter, approved by Royal Order number 6801, dated October 31, 2017.\nDocument Classification: Open\nThe National Cryptographic Standards\nSharing Notice: White\nDefinitions\nTerms\nThe process of transforming plaintext into ciphertext using a\ncryptographic algorithm and key.\nEncryption\nA function that maps an input bit string of arbitrary length to a fixed-\nlength output bit string. This output is often irreversible and serves as a\ncondensed representation of the input.\nHash Function\nA message authentication code that uses an approved keyed-hash\nfunction.\nHash-based",
-      "parent_id": null
-    },
-    {
-      "section_id": "SEC_0056",
-      "title": "MAC (HMAC)",
-      "level": 1,
-      "start_page": 26,
-      "end_page": 26,
-      "text": "MAC (HMAC)\nAn application of cryptography that combines two or more encryption\nalgorithms, particularly a combination of symmetric and asymmetric\nencryption.22\nHybrid\nencryption\nA known public vector used as an input to initialize an encryption\nalgorithm to increase security and support synchronization.\nInitialization\nVector\nA property whereby data has not been altered in an unauthorized manner\nsince it was created, transmitted or stored.\nIntegrity\nChecksum capable of detecting modification of an information system.\nIntegrity Check\nValue\nAn authentication system developed to enable two parties to exchange\nprivate information across a public network.\nKerberos\nProtocols\nA key-establishment procedure where resultant keying material is a\nfunction of information contributed by two or more participants, so that\nno party can predetermine the value of the keying material independently\nof any other party’s contribution.\nKey Agreement\nA function in the lifecycle of keying material; a repository for the long-\nterm storage of keying material.\nKey Archive\nThe process by which one or more keys are derived from either a pre-\nshared key or a shared secret and other information.\nKey Derivation\nFunctions\nRemoving all traces of keying material so that it cannot be recovered by\neither physical or electronic means.\nKey\nDestruction\nSee Key Transport.\nKey\nDistribution\nThe process of exchanging public keys to establish secure communications.\nKey Exchange",
-      "parent_id": null
-    },
-    {
-      "section_id": "SEC_0057",
-      "title": "SANS Glossary",
-      "level": 1,
-      "start_page": 26,
-      "end_page": 27,
-      "text": "22 SANS Glossary\nDocument Classification: Open\nThe National Cryptographic Standards\nSharing Notice: White\nDefinitions\nTerms\nThe process of generating keys for cryptography.\nKey Generation\nThe activities involving the handling of cryptographic keys and other\nrelated security parameters (e.g., initialization vectors) during the entire\nlifecycle of the keys, including their generation, storage, establishment,\nentry and output, use and destruction.\nKey Lifecycle\nManagement",
-      "parent_id": null
-    },
-    {
-      "section_id": "SEC_0058",
-      "title": "(KLM)",
-      "level": 1,
-      "start_page": 27,
-      "end_page": 27,
-      "text": "(KLM)\nA function in the lifecycle of keying material; the process of officially\nrecording the keying material by a registration authority.\nKey\nRegistration /\nCertification\nA function in the lifecycle of keying material; a process whereby a notice\nis made available to the affected entities that the keying material should\nbe removed from operational use prior to the end of the established\ncryptoperiod of that keying material.\nKey Revocation\nA key-establishment procedure whereby one entity distributes the key to\nanother entity.\nKey Transport\nA method of encrypting keys (along with associated integrity\ninformation) that provides both confidentiality and integrity protection\nusing a symmetric key algorithm.\nKey Wrap\nA sub-category in the field of cryptography that intends to provide\nsecurity solutions for resource-constrained devices.\nLightweight\nCrypto\nA cryptographic checksum on data that uses a symmetric key to detect\nboth accidental and intentional modifications of the data. MACs provide\nauthenticity and integrity protection.\nMessage\nAuthentication\nCode (MAC)\nA service using a digital signature that is used to support a determination\nof whether a message was actually signed by a given entity.\nNon-\nrepudiation\nIn an asymmetric algorithm, the private key is used for digital signing\nand decrypting data, and it must remain secret.\nPrivate Key\nIn an asymmetric algorithm, the public key is used for verifying digital\nsignature and encrypting data, and it is publicly known.\nPublic Key\nA framework that is established to issue, maintain and revoke public key\ncertificates.\nPublic Key\nInfrastructure",
-      "parent_id": null
-    },
-    {
-      "section_id": "SEC_0059",
-      "title": "(PKI)",
-      "level": 1,
-      "start_page": 27,
-      "end_page": 29,
-      "text": "(PKI)\nAn asymmetric algorithm that is used for key establishment and digital\nsignature generation and verification.\nRSA\nDocument Classification: Open\nThe National Cryptographic Standards\nSharing Notice: White\nDefinitions\nTerms\nA symmetric key cipher method where each plaintext bit/word is encrypted\none at a time with a corresponding pseudorandom stream (keystream)\nusing a time variant internal state to produce ciphertext bit/word.\nStream Cipher\nAlgorithm\nIn cryptography, strong primes are primes whose products are hard to\nfactor.\nMore specifically, a prime is a strong prime if:\n(a) – has a large prime factor , and\n(b) – has a large prime factor, and\n(c) + has a large prime factor.\nStrong Primes\nA cryptographic algorithm that uses a single secret key for both\nencryption and decryption.\nSymmetric\nAlgorithm\nDocument Classification: Open\nThe National Cryptographic Standards\nSharing Notice: White",
-      "parent_id": null
-    },
-    {
-      "section_id": "SEC_0060",
-      "title": "Acronyms",
-      "level": 2,
-      "start_page": 29,
-      "end_page": 29,
-      "text": "7.5 Acronyms\nTable 3- List of acronyms\nFull Term\nAcronym\nAuthenticated Encryption with Associated Data\nAEAD\nAdvanced Encryption Standards\nAES\nAuthentication Header\nAH\nAuthenticated Lightweight Key Exchange\nALIKE\nAuthority Revocation Lists\nARLs\nCertificate Authority\nCA\nCipher Block Chaining\nCBC\nCounter with CBC-MAC\nCCM\nCipher Feedback\nCFB\nCipher-based Message Authentication Code\nCMAC\nCertificate Revocation Lists\nCRLs\nCounTeR\nCTR\nDiffie-Hellman\nDH\nDiscrete Logarithm Integrated Encryption Scheme\nDLIES\n\nDomain Name System Security\nDomain Name System Security",
-      "parent_id": "SEC_0059"
-    },
-    {
-      "section_id": "SEC_0061",
-      "title": "DNSSEC",
-      "level": 1,
-      "start_page": 29,
-      "end_page": 30,
-      "text": "DNSSEC\nDigital Signature Algorithm\nDSA\nElliptic Curve Cryptography\nECC\nElliptic Curve Discrete Logarithm Problem\nECDLP\nElliptical Curve Digital Signature Algorithm\nECDSA\nElliptic Curve Integrated Encryption Scheme\nECIES\nEPS Encryption Algorithm\nEEA\nEPS Integrity Algorithm\nEIA\nEvolved Packet System\nEPS\nEncapsulating Security Payload\nESP\nFederal Information Processing Standards\nFIPS\nGalois Counter Mode\nGCM\nHash-based Key Derivation Function\nHKDF\nHash-based Message Authentication Code\nHMAC\nIntegrity Check Value\nICV\nInternet Key Exchange version 2\nIKE-v2\nInternet Protocol Security\nIPsec\nDocument Classification: Open\nThe National Cryptographic Standards\nSharing Notice: White\nFull Term\nAcronym\nInternational Organization for Standardization and the International\nElectrotechnical Commission",
-      "parent_id": null
-    },
-    {
-      "section_id": "SEC_0062",
-      "title": "ISO/IEC",
-      "level": 1,
-      "start_page": 30,
-      "end_page": 30,
-      "text": "ISO/IEC\nInitialization Vector\nIV\nKey Derivation Functions\nKDF\nKey Lifecycle Management\nKLM\nKey Wrap\nKW\nKey Wrap with Padding\nKWP\nLong-Term Evolution\nLTE\nMessage Authentication Code\nMAC\nNR Encryption Algorithm\nNEA\nNR Integrity Algorithm\nNIA\nNational Institution of Standard and Technology\nNIST\nNew Radio\nNR\nOnline Certificate Status Protocol\nOCSP\nOutput Feedback\nOFB\nPublic Key Infrastructure\nPKI\nAlgorithm developed by Rivest, Shamir and Adelman\nRSA\nRSA with Optimal Asymmetric Encryption Padding\n\nRSA-OAEP\nRSA-OAEP\nSecure Hash Algorithm 2\n\nSHA-2\nSHA-2\nSecure Hash Algorithm 3",
-      "parent_id": null
-    },
-    {
-      "section_id": "SEC_0063",
-      "title": "SHA-3",
-      "level": 1,
-      "start_page": 30,
-      "end_page": 32,
-      "text": "SHA-3\nSecure Shell\nSSH\nTransport Layer Security\nTLS\nUMTS Encryption Algorithm\nUEA\nUMTS Integrity Algorithm\nUIA\nUniversal Mobile Telecommunications System\nUMTS\nWi-Fi Protected Access\nWPA",
-      "parent_id": null
+      "title": "KLM Processes",
+      "page_range": [21, 22],
+      "text": "Key Generation:\n  Keys (secret and private) must not be vulnerable to prediction or bias.\n  Weak keys must not be used.\n  Private and public keys require prime number generation with extra mathematical properties.\n\nKey Registration/Certification:\n  Keys must be associated with their owner (user) with a certificate.\n  Root certificates must be distributed to relying parties and signatories.\n  A trusted CA must be used.\n\nKey Distribution and Installation:\n  Keys must be distributed to their users securely and must be under the users control.\n  Keys must be transported securely by protecting their confidentiality and authenticity.\n  All copies of keys must be securely installed and stored.\n  Public keys must be transported and authenticity (but not privacy) must be protected by using certificates.\n  Private keys must be protected and authorized by the owner/third party or CA.\n\nKey Use:\n  Keys must be protected against unauthorized use during their lifetimes.\n  Keys must be protected against misuse from the owners, with key storage on secure hardware and/or secure software (authorization checks).\n\nKey Storage:\n  Organizations must require secure backups of keys (for internal or law enforcement use) when encryption is supported.\n  Keys used for non-repudiation must be under the sole control of the user.\n\nKey Revocation/Validation:\n  In distributed systems, special measures such as updated versions of the Certificate Revocation List (CRL) and the Online Certificate Status Protocol (OCSP) must be implemented to avoid relying on keys that have expired.\n  Key validation must be done by checking the CRL or OCSP servers.\n\nKey Archive:\n  The archival process must be secured, and confidentiality must be ensured to preserve the secrecy of information encrypted with archived keys.\n  Expired keys must be archived to keep old data accessible when encryption is supported.\n  Archival systems must follow the retention periods as per relevant regulations.\n\nKey Destruction:\n  When key lifetime expires and there is no need for it to be archived or stored, it must be removed from hardware via a secure deletion process.\n  Media storage systems storing keys must be sanitized before disposal using a process compliant with NIST SP 800-88r1 or NSA/CSS Storage Device Sanitization Manual.\n\nKey Accounting:\n  There must be accounting for all asymmetric keys.\n  Use of asymmetric keys must be monitored.\n  There must be accounting for key use.",
+      "depends_on": []
     }
   ]
 }

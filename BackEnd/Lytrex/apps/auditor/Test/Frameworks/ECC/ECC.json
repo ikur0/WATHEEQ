@@ -1,0 +1,303 @@
+{
+  "framework": "ECC",
+  "source_file": "ECC--2024-EN.pdf",
+  "sections": [
+    {
+      "section_id": "SEC_0000",
+      "section": "1-1",
+      "title": "Cybersecurity Strategy",
+      "page_range": [
+        13,
+        13
+      ],
+      "text": "1-1-1: The cybersecurity strategy of the entity shall be identified, documented, and approved, and it shall be supported by the head of the entity or his/her delegate (Hereinafter referred to as the “Authorized Official”). The strategy goals shall be in line with the relevant legislative and regulatory requirements.\n1-1-2: The entity shall execute an action plan to apply the cybersecurity strategy.\n1-1-3: The cybersecurity strategy shall be reviewed at planned intervals (or in case of changes to the relevant legislative and regulatory requirements).",
+      "depends_on": []
+    },
+    {
+      "section_id": "SEC_0001",
+      "section": "1-2",
+      "title": "Cybersecurity Management",
+      "page_range": [
+        13,
+        14
+      ],
+      "text": "1-2-1: A department for cybersecurity shall be established within the entity. This department shall be independent from the Information Technology and Communications Department (As per High Order No. 37140, dated 14/08/1438H.). It is recommended that the Cybersecurity Department reports directly to the head of the entity or his/her delegate while ensuring that this does not result in a conflict of interests.\n1-2-2: All cybersecurity positions shall be filled out with full-time and qualified Saudi cybersecurity professionals.\n1-2-3: A cybersecurity supervisory committee shall be established pursuant to the instruction of the entity’s Authorized Official to ensure compliance with, support for, and monitoring of the implementation of the cybersecurity programs and regulations. The committee’s members, responsibilities, and governance framework shall be identified, documented, and approved. The committee shall include the head of the cybersecurity",
+      "depends_on": []
+    },
+    {
+      "section_id": "SEC_0002",
+      "section": "1-3",
+      "title": "Cybersecurity Policies and Procedures",
+      "page_range": [
+        14,
+        14
+      ],
+      "text": "1-3-1: The cybersecurity department of the entity shall identify and document cybersecurity policies and procedures, including the cybersecurity controls and requirements, and have them approved by the entity’s Authorized Official, and communicate them to the relevant personnel and parties inside the entity.\n1-3-2: The cybersecurity department shall ensure that the cybersecurity policies and procedures, including the relevant controls and requirements, are implemented at the entity.\n1-3-3: The cybersecurity policies and procedures shall be supported by technical security standards (e.g. technical security standards for firewall, databases, operating systems, etc.).\n1-3-4: The cybersecurity policies and procedures shall be reviewed and updated at planned intervals (or in case of changes to the relevant legislative and regulatory requirements and standards). Changes shall be documented and approved.",
+      "depends_on": []
+    },
+    {
+      "section_id": "SEC_0003",
+      "section": "1-4",
+      "title": "Cybersecurity Roles and Responsibilities",
+      "page_range": [
+        14,
+        14
+      ],
+      "text": "1-4-1: The Authorized Official shall identify, document, and approve the governance organizational structure, roles, and responsibilities of the entity’s cybersecurity, and assign the persons concerned therewith. The necessary support shall be provided for the implementation thereof while ensuring that this does not result in a conflict of interests.\n1-4-2: The cybersecurity roles and responsibilities within the entity shall be reviewed and updated at planned intervals (or in case of changes to the relevant legislative and regulatory requirements).",
+      "depends_on": []
+    },
+    {
+      "section_id": "SEC_0004",
+      "section": "1-5",
+      "title": "Cybersecurity Risk Management",
+      "page_range": [
+        15,
+        15
+      ],
+      "text": "1-5-1: The cybersecurity department of the entity shall identify, document, and approve the cybersecurity risk management methodology and procedures within the entity, in accordance with considerations of confidentiality, and the integrity and availability of information and technology assets.\n1-5-2: The cybersecurity department shall implement the cybersecurity risk management methodology and procedures within the entity.\n1-5-3: The cybersecurity risk assessment procedures shall be implemented at least in the following cases: 1.5.3.1 At early stage of technology projects. 1.5.3.2 Before making major changes to technology infrastructure. 1.5.3.3 During planning to obtain third party services. 1.5.3.4 During planning and before the release of new technology services and products.\n1-5-4: The cybersecurity risk management methodology and procedures shall be reviewed and updated at planned intervals (or in case of changes to the relevant legislative and regulatory requirements and standards). Changes shall be documented and approved.",
+      "depends_on": []
+    },
+    {
+      "section_id": "SEC_0005",
+      "section": "1-6",
+      "title": "Cybersecurity in Information and Technology Project Management",
+      "page_range": [
+        15,
+        16
+      ],
+      "text": "1-6-1: Cybersecurity requirements shall be included in the project management methodology and procedures and in the information and technology asset change management within the entity to ensure identifying and managing cybersecurity risks as part of the technology project lifecycle. The cybersecurity requirements shall be a key part of the requirements for technology projects.\n1-6-2: The cybersecurity requirements for project management and information and technology asset changes within the entity shall include the following as a minimum: 1.6.2.1 Vulnerability assessment and remediation. 1.6.2.2 Reviewing secure configuration and hardening and updates packages before launching projects and changes.\n1-6-3: The cybersecurity requirements for software and application development projects within the entity shall include the following as a minimum: 1.6.3.1 Using the secure coding standards. 1.6.3.2 Using trusted and licensed sources for software development tools and libraries. 1.6.3.3 Conducting compliance test for software against the cybersecurity requirements within the entity. 1.6.3.4 Secure integration between applications. 1.6.3.5 Reviewing secure configuration and hardening and updates packages before launching software products\n1-6-4: The cybersecurity requirements for project management within the entity shall be periodically reviewed. 1.7 Compliance with Cybersecurity Standards, Laws and Regulations\n1-7-1: If there are nationally approved international agreements or commitments that include cybersecurity requirements, the entity shall identify and comply with these requirements.",
+      "depends_on": []
+    },
+    {
+      "section_id": "SEC_0006",
+      "section": "1-8",
+      "title": "Periodical Cybersecurity Review and Audit",
+      "page_range": [
+        16,
+        27
+      ],
+      "text": "1-8-1: The cybersecurity department of the entity shall periodically review the implementation of cybersecurity controls by the entity.\n1-8-2: The implementation of cybersecurity controls by the entity shall be reviewed and audited by parties other than the cybersecurity department at the entity, provided that the audit and review are to be conducted independently while considering the principle of conflict of interest, as per the Generally Accepted Auditing Standards (GAAS) and the relevant legislative and regulatory requirements.\n1-8-3: The results of cybersecurity audits and reviews shall be documented and presented to the cybersecurity supervisory committee and the Authorized Official. Results shall include the audit and review scope, observations, recommendations, corrective actions, and remediation plans.",
+      "depends_on": []
+    },
+    {
+      "section_id": "SEC_0007",
+      "section": "1-9",
+      "title": "Cybersecurity in Human Resources",
+      "page_range": [
+        17,
+        17
+      ],
+      "text": "1-9-1: Cybersecurity requirements for personnel of the entity shall be identified, documented, and approved prior to, during, and upon the end or termination of their employment.\n1-9-2: Cybersecurity requirements for personnel of the entity shall be implemented.\n1-9-3: Cybersecurity requirements prior to the commencement of the employment relationship between personnel and the entity shall include the following as a minimum: 1.9.3.1 Incorporating the personnel’s cybersecurity responsibilities clauses and non- disclosure clauses in their employment contracts with the entity (including during and after employment end/termination with the entity). 1.9.3.2 Conducting screening or vetting for personnel in cybersecurity positions and technical positions with critical and privileged powers.\n1-9-4: Cybersecurity requirements for personnel during their employment relationship with the entity shall include the following as a minimum: 1.9.4.1 Cybersecurity awareness (during on-boarding and during employment). 1.9.4.2 Implementation and compliance with cybersecurity requirements, as per the entity’s cybersecurity policies, procedures, and operations.\n1-9-5: The personnel’s powers shall be reviewed and revoked immediately upon the end/termination of their employment with the entity.\n1-9-6: Cybersecurity requirements for personnel of the entity shall be periodically reviewed.",
+      "depends_on": []
+    },
+    {
+      "section_id": "SEC_0008",
+      "section": "1-10",
+      "title": "Cybersecurity Awareness and Training Program",
+      "page_range": [
+        18,
+        18
+      ],
+      "text": "1-10-1: A cybersecurity awareness program, delivered through multiple channels, shall be periodically developed and approved by the entity to strengthen the awareness about cybersecurity, cyber threats, and risks, and to build a positive cybersecurity awareness culture.\n1-10-2: The approved cybersecurity awareness program shall be implemented within the entity.\n1-10-3: The cybersecurity awareness program shall include how to protect the entity against the most important and latest cyber risks and threats, including: 1.10.3.1 Secure handling of email services, especially phishing emails. 1.10.3.2 Secure handling of mobile devices and storage media. 1.10.3.3 Secure Internet browsing. 1.10.3.4 Secure usage of social media.\n1-10-4: Specialized skills and necessary training shall be provided to personnel in positions that are linked directly to cybersecurity within the entity. Such skills and training shall be classified in line with their cybersecurity responsibilities, including: 1.10.4.1 Cybersecurity department personnel. 1.10.4.2 Personnel working on software/application development and those working on information and technology assets of the entity. 1.10.4.3 Executive and supervisory positions.\n1-10-5: The implementation of cybersecurity awareness program within the entity shall be periodically reviewed.",
+      "depends_on": []
+    },
+    {
+      "section_id": "SEC_0009",
+      "section": "2-1",
+      "title": "Asset Management",
+      "page_range": [
+        19,
+        19
+      ],
+      "text": "2-1-1: Cybersecurity requirements for managing information and technology assets of the entity shall be identified, documented, and approved.\n2-1-2: Cybersecurity requirements for managing information and technology assets of the entity shall be implemented.\n2-1-3: The policy of acceptable use of information and technology assets of the entity shall be identified, documented, approved, and communicated.\n2-1-4: The policy of acceptable use of information and technology assets of the entity shall be implemented.\n2-1-5: Information and technology assets of the entity shall be classified, labeled, and handled as per the relevant legislative and regulatory requirements.\n2-1-6: Cybersecurity requirements for managing information and technology assets of the entity shall be periodically reviewed.",
+      "depends_on": []
+    },
+    {
+      "section_id": "SEC_0010",
+      "section": "2-2",
+      "title": "Identity and Access Management",
+      "page_range": [
+        19,
+        20
+      ],
+      "text": "2-2-1: Cybersecurity requirements for identity and access management of the entity shall be identified, documented, and approved.\n2-2-2: Cybersecurity requirements for identity and access management of the entity shall be implemented.\n2-2-3: Cybersecurity requirements for identity and access management of the entity shall include the following as a minimum: 2.2.3.1 Single-factor authentication based on username and password.\n2-2-4: The implementation of cybersecurity requirements for identity and access management of the entity shall be periodically reviewed.",
+      "depends_on": []
+    },
+    {
+      "section_id": "SEC_0011",
+      "section": "2-3",
+      "title": "Information System and Processing Facilities Protection",
+      "page_range": [
+        20,
+        20
+      ],
+      "text": "2-3-1: Cybersecurity requirements for protection of information system and processing facilities of the entity shall be identified, documented, and approved.\n2-3-2: Cybersecurity requirements for protection of information systems and processing facilities of the entity shall be implemented.\n2-3-3: Cybersecurity requirements for protection of information systems and processing facilities of the entity shall include the following as a minimum: 2.3.3.1 Protection from viruses, suspicious programs and activities, and malware on workstations and servers, using modern and advanced protection technologies and mechanisms, and securely managing them. 2.3.3.2 Strict restriction on the use of external storage media and their security. 2.3.3.3 Patch management for systems, applications, and devices. 2.3.3.4 Centralized clock synchronization with an accurate and trusted source, such as sources provided by the Saudi Standards, Metrology and Quality Organization (SASO).\n2-3-4: The implementation of cybersecurity requirements for protection of the information system and processing facilities of the entity shall be periodically reviewed.",
+      "depends_on": []
+    },
+    {
+      "section_id": "SEC_0012",
+      "section": "2-4",
+      "title": "Email Protection",
+      "page_range": [
+        21,
+        21
+      ],
+      "text": "2-4-1: Cybersecurity requirements for protection of the email service of the entity shall be identified, documented, and approved.\n2-4-2: Cybersecurity requirements for protection of email service of the entity shall be implemented.\n2-4-3: Cybersecurity requirements for protection of the email service of the entity shall include the following as a minimum: 2.4.3.1 Analyzing and filtering email messages (specifically phishing emails and spam emails) using modern and advanced email protection techniques and mechanisms. 2.4.3.2 Multi-factor authentication, and defining the suitable authentication factors and their numbers as well as the suitable authentication techniques based on the result of impact assessment of authentication failure and bypass for remote and webmail access. 2.4.3.3 Email archiving and backup. 2.4.3.4 Secure management and protection against Advanced Persistent Threats (APT), which normally utilize zero-day malware and viruses. 2.4.3.5 Validation of the entity’s email service domains by using Sender Policy Framework (SPF), Domain Keys Identified Mail (DKIM), and Domain Message Authentication Reporting and Conformance (DMARC).\n2-4-4: The implementation of cybersecurity requirements for email service of the entity shall be periodically reviewed .",
+      "depends_on": []
+    },
+    {
+  "section_id": "SEC_0013",
+  "section": "2-5",
+  "title": "Networks Security Management",
+  "page_range": [
+    21,
+    22
+  ],
+  "text": "2-5-1: Cybersecurity requirements for the entity’s network security management shall be identified, documented, and approved.\n2-5-2: Cybersecurity requirements for the entity’s network security management shall be implemented.\n2-5-3: Cybersecurity requirements for the entity’s network security management shall include the following as a minimum:\n2.5.3.1 Logical or physical isolation and segmentation of network segments in a secure manner which is required to control relevant cybersecurity risks, using firewall and defense-in-depth principle.\n2.5.3.2 Isolation of production network from testing and development environment networks.\n2.5.3.3 Secure browsing and internet connectivity, including strict restrictions on suspicious websites, file storage/sharing websites, and remote access websites.\n2.5.3.4 Wireless network security and protection using secure authentication and encryption techniques and avoiding the connection of wireless networks to the entity’s internal network, except after a comprehensive assessment of subsequent risks, with handling them in a way that protects the technology assets of the entity.\n2.5.3.5 Restricting and managing network services, protocols, and ports.\n2.5.3.6 Intrusion Prevention Systems (IPS).\n2.5.3.7 Security of Domain Name Service (DNS).\n2.5.3.8 Secure management and protection of Internet browsing channel against Advanced Persistent Threats (APT), which normally utilize zero-day malware and viruses.\n2-5-3-9 Protecting against Distributed Denial of Service (DDoS) attacks to limit risks arising from these attacks.\n2-5-4: The implementation of cybersecurity requirements for the entity’s network security management shall be periodically reviewed.",
+  "depends_on": []
+    },
+    {
+  "section_id": "SEC_0014",
+  "section": "2-6",
+  "title": "Mobile Devices Security",
+  "page_range": [
+    22,
+    23
+  ],
+  "text": "2-6-1: Cybersecurity requirements for mobile devices and BYOD security when connected to the entity’s network shall be identified, documented, and approved.\n2-6-2: Cybersecurity requirements for mobile devices and BYOD security of the entity shall be implemented.\n2-6-3: Cybersecurity requirements for mobile devices and BYOD security of the entity shall include the following as a minimum:\n2.6.3.1 Separation and encryption of the entity’s data and information stored on mobile devices and BYODs.\n2.6.3.2 Controlled and restricted use based on the requirements of the interest of the entity's business.\n2.6.3.3 Deletion of the entity’s data and information stored on mobile devices and BYOD in cases of device loss or after the ending/termination of employment with the entity.\n2.6.3.4 Security awareness for users.\n2-6-4: The implementation of cybersecurity requirements for mobile devices and BYOD security of the entity shall be periodically reviewed.",
+  "depends_on": []
+},
+    {
+      "section_id": "SEC_0015",
+      "section": "2-7",
+      "title": "Data and Information Protection",
+      "page_range": [
+        23,
+        23
+      ],
+      "text": "2-7-1: Cybersecurity requirements for protecting and handling data and information of the entity shall be identified, documented, and approved, as per the relevant legislative and regulatory requirements.\n2-7-2: Cybersecurity requirements for protecting data and information of the entity shall be implemented, based on its classification level.\n2-7-3: The implementation of cybersecurity requirements for protecting data and information of the entity shall be periodically reviewed.",
+      "depends_on": []
+    },
+    {
+  "section_id": "SEC_0016",
+  "section": "2-8",
+  "title": "Cryptography",
+  "page_range": [
+    23,
+    24
+  ],
+  "text": "2-8-1: Cybersecurity requirements for cryptography within the entity shall be identified, documented, and approved.\n2-8-2: Cybersecurity requirements for cryptography within the entity shall be implemented.\n2-8-3: Cybersecurity requirements for cryptography shall include at least the requirements in the National Cryptographic Standards, published by NCA. The appropriate cryptographic standard level shall be implemented based on the nature and sensitivity of the data, systems, and networks to be protected as well as the entity’s risk assessment,and as per the relevant legislative and regulatory requirements, as follows:\n2.8.3.1 Approved cryptographic systems and solutions standards and their technical and regulatory restrictions.\n2.8.3.2 Secure management of cryptographic keys during their lifecycles.\n2.8.3.3 Encryption of data in-transit and at-rest, as per their classification and the relevant legislative and regulatory requirements.\n2-8-4: The implementation of cybersecurity requirements for cryptography within the entity shall be periodically reviewed.",
+  "depends_on": []
+},
+    {
+      "section_id": "SEC_0017",
+      "section": "2-9",
+      "title": "Backup and Recovery Management",
+      "page_range": [
+        24,
+        24
+      ],
+      "text": "2-9-1: Cybersecurity requirements for backup and recovery management within the entity shall be identified, documented, and approved.\n2-9-2: Cybersecurity requirements for backup and recovery management within the entity shall be implemented.\n2-9-3: Cybersecurity requirements for backup and recovery management shall include the following as a minimum: 2.9.3.1 Scope of backups to cover critical technology and information assets. 2.9.3.2 Ability to perform quick recovery of data and systems after cybersecurity incidents. 2.9.3.3 Periodic testing for the effectiveness of backup recovery.\n2-9-4: The implementation of cybersecurity requirements for backup and recovery management within the entity shall be periodically reviewed.",
+      "depends_on": []
+    },
+    {
+      "section_id": "SEC_0018",
+      "section": "2-10",
+      "title": "Vulnerabilities Management",
+      "page_range": [
+        24,
+        25
+      ],
+      "text": "2-10-1: Cybersecurity requirements for technical vulnerabilities management within the entity shall be identified, documented, and approved.\n2-10-2: Cybersecurity requirements for technical vulnerabilities management within the entity shall be implemented.\n2-10-3: Cybersecurity requirements for technical vulnerabilities management shall include the following as a minimum: 2.10.3.1 Periodic vulnerabilities assessment and detection. 2.10.3.2 Vulnerabilities classification based on their severities. 2.10.3.3 Vulnerabilities remediation based on their classification and the associated cyber risks. 2.10.3.4 Patch management to remediate vulnerabilities, and ensuring the integrity and effectiveness of these updates and fixes are verified using a non-production environment before being applied. 2.10.3.5 Communication and subscription with trusted resources for new and up-to- date vulnerabilities.\n2-10-4: The implementation of cybersecurity requirements for technical vulnerabilities management within the entity shall be periodically reviewed.",
+      "depends_on": []
+    },
+    {
+      "section_id": "SEC_0019",
+      "section": "2-11",
+      "title": "Penetration Testing",
+      "page_range": [
+        25,
+        25
+      ],
+      "text": "2-11-1: Cybersecurity requirements for penetration testing within the entity shall be identified, documented, and approved.\n2-11-2: Cybersecurity requirements for penetration testing within the entity shall be implemented.\n2-11-3: Cybersecurity requirements for penetration testing shall include the following as a minimum: 2.11.3.1 Scope of penetration testing to include all externally provided services (via the Internet) and their technical components, including infrastructure, websites, web applications, smartphone and tablet applications, email, and remote access. 2.11.3.2 Conducting penetration tests periodically.\n2-11-4: The implementation of cybersecurity requirements for penetration testing shall be periodically reviewed.",
+      "depends_on": []
+    },
+    {
+      "section_id": "SEC_0020",
+      "section": "2-12",
+      "title": "Cybersecurity Event Logs and Monitoring Management",
+      "page_range": [
+        26,
+        26
+      ],
+      "text": "2-12-1: Cybersecurity requirements for cybersecurity event logs and monitoring management within the entity shall be identified, documented, and approved.\n2-12-2: Cybersecurity requirements for cybersecurity event logs and monitoring management within the entity shall be implemented.\n2-12-3: Cybersecurity requirements for cybersecurity event logs and monitoring management shall include the following as a minimum: 2.12.3.1 Activation of cybersecurity event logs for critical information assets within the entity. 2.12.3.2 Activation of cybersecurity event logs for critical and privileged accounts accessing information assets as well as for remote access events within the entity. 2.12.3.3 Identification of Security Information and Event Management (SIEM) techniques required for cybersecurity event logs collection. 2.12.3.4 Continuous monitoring of cybersecurity event logs. 2.12.3.5 Retention period of cybersecurity event logs (shall be at least 12 months).\n2-12-4: The implementation of cybersecurity requirements for cybersecurity event logs and monitoring management within the entity shall be periodically reviewed.",
+      "depends_on": []
+    },
+    {
+      "section_id": "SEC_0021",
+      "section": "2-13",
+      "title": "Cybersecurity Incident and Threat Management",
+      "page_range": [
+        26,
+        27
+      ],
+      "text": "2-13-1: Requirements for cybersecurity incident and threat management within the entity shall be identified, documented, and approved.\n2-13-2: Requirements for cybersecurity incident and threat management within the entity shall be implemented.\n2-13-3: Requirements for cybersecurity incident and threat management shall include the following as a minimum: 2.13.3.1 Cybersecurity incident response plans and escalation procedures. 2.13.3.2 Cybersecurity incident classification. 2.13.3.3 Reporting cybersecurity incidents to the NCA. 2.13.3.4 Sharing cybersecurity incident notifications, threat intelligence, penetration indicators, and incident reports with the NCA. 2.13.3.5 Collecting and handling threat intelligence feeds.\n2-13-4: The implementation of cybersecurity requirements for incident and threat management within the entity shall be periodically reviewed.",
+      "depends_on": []
+    },
+    {
+      "section_id": "SEC_0022",
+      "section": "2-14",
+      "title": "Physical Security",
+      "page_range": [
+        27,
+        27
+      ],
+      "text": "2-14-1: Cybersecurity requirements for protection of information and technology assets of the entity against unauthorized physical access, loss, theft, and damage shall be identified, documented, and approved.\n2-14-2: Cybersecurity requirements for protection of information and technology assets of the entity against unauthorized physical access, loss, theft, and damage shall be implemented.\n2-14-3: Cybersecurity requirements for protection of information and technology assets of the entity against unauthorized physical access, loss, theft, and damage shall include the following as a minimum: 2.14.3.1 Authorized access to critical areas within the entity (e.g. the entity’s data center, disaster recovery center, critical information processing facilities, security surveillance center, network connection rooms, technical device and equipment supply areas, etc.). 2.14.3.2 Access and monitoring logs (CCTV). 2.14.3.3 Protection of access and monitoring log information. 2.14.3.4 Security of the destruction and re-use of physical assets that hold classified information (including paper documents and storage media). 2.14.3.5 Security of devices and equipment inside and outside the entity’s facilities.\n2-14-4: Cybersecurity requirements for protection of information and technology assets of the entity against unauthorized physical access, loss, theft, and damage shall be periodically reviewed.",
+      "depends_on": []
+    },
+    {
+      "section_id": "SEC_0023",
+      "section": "2-15",
+      "title": "Web Application Security",
+      "page_range": [
+        28,
+        28
+      ],
+      "text": "2-15-1: Cybersecurity requirements for protection of external web applications of the entity shall be identified, documented, and approved.\n2-15-2: Cybersecurity requirements for protection of external web applications of the entity shall be implemented.\n2-15-3: Cybersecurity requirements for protection of external web applications of the entity shall include the following as a minimum: 2.15.3.1 Use of web application firewall. 2.15.3.2 Adoption of the multi-tier architecture principle. 2.15.3.3 Use of secure protocols (e.g. HTTPS). 2.15.3.4 Clarification of the secure usage policy for users. 2.15.3.5 User authentication, and the suitable authentication factors and their numbers as well as the authentication techniques shall be defined based on the result of impact assessment of authentication failure and bypass for users’ access.\n2-15-4: Cybersecurity requirements for protection of web applications of the entity shall be periodically reviewed.",
+      "depends_on": []
+    },
+    {
+      "section_id": "SEC_0024",
+      "section": "3-1",
+      "title": "Cybersecurity Resilience Aspects of Business Continuity Management(BCM)",
+      "page_range": [
+        29,
+        29
+      ],
+      "text": "3-1-1: Cybersecurity requirements for business continuity management within the entity shall be identified, documented, and approved.\n3-1-2: Cybersecurity requirements for business continuity management within the entity shall be implemented.\n3-1-3: Cybersecurity requirements for business continuity management within the entity shall include the following as a minimum: 3.1.3.1 Ensuring the continuity of cybersecurity systems and procedures. 3.1.3.2 Developing plans for response to cybersecurity incidents that may affect the entity’s business continuity. 3.1.3.3 Developing disaster recovery plans.\n3-1-4: Cybersecurity requirements for business continuity management within the entity shall be periodically reviewed.",
+      "depends_on": []
+    },
+    {
+      "section_id": "SEC_0025",
+      "section": "4-1",
+      "title": "Third-Party Cybersecurity",
+      "page_range": [
+        30,
+        30
+      ],
+      "text": "4-1-1: Cybersecurity requirements for the entity’s contracts and agreements with third parties shall be identified, documented, and approved.\n4-1-2: Cybersecurity requirements for contracts and agreements with third parties, e.g. Service Level Agreement (SLA), which, if impaired, may affect the entity's data or services shall include the following as a minimum: 4.1.2.1 Clauses of non-disclosure and the secure removal of the entity’s data by the third party upon the end of service. 4.1.2.2 Communication procedures in case of the occurrence of a cybersecurity incident. 4.1.2.3 Obligating the third party to apply the entity’s cybersecurity requirements and policies and the relevant legislative and regulatory requirements.\n4-1-3: Cybersecurity requirements for contracts and agreements with third parties providing IT or cybersecurity outsourcing or managed services shall include the following as a minimum: 4.1.3.1 Conducting a cybersecurity risk assessment and ensuring the availability of risk mitigation controls before signing contracts and agreements or upon making changes to the relevant legislative and regulatory requirements. 4.1.3.2 Cybersecurity managed service centers for monitoring and operations which use remote access shall be fully located in the Kingdom of Saudi Arabia.\n4-1-4: Cybersecurity requirements for third parties shall be periodically reviewed.",
+      "depends_on": []
+    },
+    {
+      "section_id": "SEC_0026",
+      "section": "4-2",
+      "title": "Cloud Computing and Hosting Cybersecurity",
+      "page_range": [
+        31,
+        31
+      ],
+      "text": "4-2-1: Cybersecurity requirements for use of cloud computing and hosting services shall be identified, documented, and approved.\n4-2-2: Cybersecurity requirements for the cloud computing and hosting services within the entity shall be implemented.\n4-2-3: In accordance with the relevant legislative and regulatory requirements, and in addition to the applicable controls in the Main Domains (1), (2), and (3) and Subdomain (4.1) that are necessary to protect the entity’s data or services provided thereto, cybersecurity requirements for use of cloud computing and hosting services shall include the following as a minimum: 4.2.3.1 Protection of entity’s data by cloud and hosting service providers in accordance with its classification level and returning data (in a usable format) upon service completion. 4.2.3.2 Separation of the entity’s environment (especially virtual servers) from environments of other entities within the cloud computing service provider.\n4-2-4: Cybersecurity requirements for cloud computing and hosting services shall be periodically reviewed. ailure and bypass for users’ access. Clarification Modification Objective of Sub-domain 4-1 To ensure the protection of assets against the cybersecurity risks related to third-parties including outsourcing and managed services as per organizational policies and procedures, and related laws and regulations. To ensure the protection of the entity’s assets against third-party cybersecurity risks (including Information Technology (IT) outsourcing, cybersecurity outsourcing, and managed services), as per the entity’s regulatory policies and procedures and the relevant legislative and regulatory requirements. Clarification Modification Control 4-1-3 The cybersecurity requirements for contracts and agreements with IT Cybersecurity requirements for contracts and agreements with third Clarification Version Date ECC – 2 : 2024 2024 Update type Section Previous text Updated text Rationale Modification Control 4-2-3-1 Classification of data prior to hosting on cloud or hosting services and returning data (in a usable format) upon service completion. Protection of entity’s data by cloud and hosting service providers in accordance with its classification level and returning data (in a usable format) upon service completion. Cybersecurity enhancement Deletion Sub-control 4-2-3-3 Entity’s information hosting and storage must be inside the Kingdom of Saudi Arabia. Controls related to data localization have been transferred from the document to the National Data Management Office (NDMO) at the Saudi Data and Artificial Intelligence Authority for as per the mandates, and entities must refer to the National Data Management Office regarding data localization before taking any action in this regard. Deletion Main domain 5 Industrial Control Systems Cybersecurity Controls in domain 5 moved to the OTCC Version Date ECC – 2 : 2024 2024 Update type Section Previous text Updated text Rationale Modification Terms and Definitions Confidential Data/Information Sensitive Data/Information Translation update Modification Terms and Definitions Critical National Infrastructure (CNI) These are the assets (i.e., facilities, systems, networks, processes and key operators who operate and process them), whose loss or vulnerability to security breaches may result in:  Significant negative impact on the availability, integration or delivery of basic services, including services that could result in serious loss of property and/or lives and/or injuries, alongside observance of significant economic and/or social impacts.  Significant impact on national security and/or national defense and/or state economy or national capacities. Critical National Infrastructure (CNI) Essential elements of infrastructure (i.e. assets, facilities, systems, networks, processes, and key personnel who operate and process them) whose loss or compromise may result in:  Significant negative impact on the availability, integration, or delivery of basic services, including services whose integrity could, if compromised, result in serious loss of property, lives, and/or injuries, taking into account significant national-level economic and/or social impacts.  Significant impact on national security, national defense, and/or Clarification Version Date ECC – 2 : 2024 2024 Update type Section Previous text Updated text Rationale Modification Terms and Definitions Cyber Attack Intentional exploitation of computer systems, networks, and entities whose work depends on digital ICT, in order to cause damage. Cyber Attack An intentional attempt to impact cybersecurity negatively; whether succeeded or not. Clarification Modification Terms and Definitions Event Something that happens in a specific place (such as network, system, application) at a specific time. Event An event related to the cybersecurity state of a network, or a system, or a service, or data, or any other digital device. Clarification Modification Terms and Definitions Incident A compromise through violation of cybersecurity policies, acceptable use policies, practices or cybersecurity controls or requirements. Incident An event that occurred and negatively impacted cybersecurity, whether intentional or unintentional. Clarification Modification Terms and Definitions (Inter)National Requirements National requirements are those developed by a regulatory entity or body in Saudi Arabia for regulatory use (e.g., NCA’s Essential Cybersecurity Controls (ECC-1:2018) International Requirements International requirements are those developed by an international entity or organization for regulatory use worldwide (e.g. SWIFT, PCI, etc.). Clarification Version Date ECC – 2 : 2024 2024 Update type Section Previous text Updated text Rationale Modification Terms and Definitions Multi-Factor Authentication (MFA) A security system that verifies user identity, which requires the use of several separate elements of identity verification mechanisms. Verification mechanisms include several elements:  Knowledge (something only the user knows “like password”).  Possession (something only owned by the user “such as a program, device generating random numbers or SMSs” for login records, which are called: One- Time-Password).  Inherent characteristics (characteristics of the user only, such as fingerprint). Multi-Factor Authentication (MFA) A security system that verifies user identity, using several authentication factors through user authentication techniques. Authentication factors are:  Knowledge (something only the user knows “such as using a password technique”).  Possession (something only owned by the user “such as using techniques like a program or a device generating random numbers or SMSs” for login records, which are called One-Time- Password).  Inherent characteristics (characteristics of the user only, such as using Clarification Version Date ECC – 2 : 2024 2024 Update type Section Previous text Updated text Rationale Deletion Terms and Definitions Privacy Freedom from unauthorized interference or disclosure of personal information about an individual. For the National Data Management Office (NDMO) at the Saudi Data and Artificial Intelligence Authority mandates, entities must refer to the National Data Management Office regarding data privacy before taking any action in this regard. Modification Terms and Definitions Threat Any circumstance or event with the potential to adversely impact organizational operations (including mission, functions, image, or reputation), organizational assets, or individuals through an information system via unauthorized access, destruction, disclosure, modification of information, and/or denial of service. Also, the potential for a threat-source to successfully exploit a Threat Anything with the potential to impact cybersecurity negatively. Clarification Version Date ECC – 2 : 2024 2024 Update type Section Previous text Updated text Rationale Modification Terms and Definitions Vulnerability Any type of weakness in a computer system, software, application, a set of procedures, or in anything that leaves cybersecurity exposed to a threat. Vulnerability A weakness in any information technology asset (such as software and systems) or a process, control, or anything, that could be exploited to negatively impact cybersecurity. Clarification Addition List of the Abbreviations DDoS: Distributed Denial of Service Attack DKIM: Domain Keys Identified Mail DMARC: Domain Message Authentication Reporting and Conformance SPF: Sender Policy Framework Addition of abbreviations Deletion List of the Abbreviations ICS: Industrial Control System SIS: Safety Instrumented System Controls in domain 5 moved to the OTCC (Operational Technology Cybersecurity Controls)",
+      "depends_on": []
+    }
+  ]
+}
