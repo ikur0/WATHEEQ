@@ -170,9 +170,9 @@ class ComplianceRAG:
                 "internal_audit_reasoning": "Step-by-step logic. I checked [Company Section: X]. Z was missing (ignored). Found violation in [Company Section: W].",
                 "compliance_score": 1-100,
                 "executive_summary": "A detailed 3-4 sentence summary.",
-                "compliant_areas": ["[Company Page: X | Company Section: Y | Framework Control: Z] precise detail of what they did right"],
-                "violations": ["[Company Page: X | Company Section: Y | Framework Control: Z] specific breach (-15 pts)"],
-                "recommendations": ["[Company Page: X | Company Section: Y | Framework Control: Z] Detailed actionable steps to fix the specific violation"]
+                "compliant_areas": ["[Company Page: X | Company Section: Y (Never mention Section Title) | Framework section: Z (never mention framework ID)] precise detail of what they did right"],
+                "violations": ["[Company Page: X | Company Section: Y (Never mention Section Title) | Framework section: Z (never mention framework ID)] specific breach (-15 pts)"],
+                "recommendations": ["[Company Page: X | Company Section: Y (Never mention Section Title) | Framework section: Z (never mention framework ID)] Detailed actionable steps to fix the specific violation"]
             }}
             """
         )
@@ -186,7 +186,7 @@ class ComplianceRAG:
             1. If a control is not mentioned, ignore it. Do NOT invent violations.
             2. Explicit Contradictions Only.
             3. Use 'internal_audit_reasoning' to do math. Base score 100, deduct for explicit violations.
-            4. Traceability: You MUST explicitly format the citation exactly like this: [Company Page: X | Company Section: Y | Framework Control: Z] for EVERY key issue and comparison sentence. Get the page from the metadata provided or printed text.
+            4. Traceability: You MUST explicitly format the citation exactly like this: [Company Page: X | Company Section: Y (Never mention Section Title) | Framework Control: Z (never mention framework ID)] for EVERY key issue and comparison sentence. Get the page from the metadata provided or printed text.
 
             <framework_context>
             {context}
@@ -202,7 +202,7 @@ class ComplianceRAG:
                 "internal_audit_reasoning": "Brief check of contradictions for scoring based on [Company Section: X].",
                 "compliance_score": 1-100,
                 "summary": "A strict 1-sentence summary.",
-                "key_issues": ["[Company Page: X | Company Section: Y | Framework Control: Z] Top critical explicit issue"]
+                "key_issues": ["[Company Page: X | Company Section: Y | Framework section: Z] Top critical explicit issue"]
             }}
             """
         )
