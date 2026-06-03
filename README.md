@@ -1,6 +1,6 @@
 # Lytrex
 
-
+![team](./assets/team.jpg)
 
 Lytrex is an end-to-end intelligent system designed to automate and scale cybersecurity compliance auditing across enterprise documents.
 
