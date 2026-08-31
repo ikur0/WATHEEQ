@@ -65,7 +65,7 @@ load_dotenv()
 class ComplianceRAG:
     """
     Elite Lytrex Compliance RAG with Structural Hybrid Retrieval.
-    Architecture: JSON-Structured Parents -> Child Chunks -> FAISS+BM25 -> Reranker -> Llama-3.1-70b (Groq).
+    Architecture: JSON-Structured Parents -> Child Chunks -> FAISS+BM25 -> Reranker -> gpt-oss-120b (Groq).
     """
 
     def __init__(self,
@@ -75,8 +75,10 @@ class ComplianceRAG:
                  vector_db_base_path: str = "LytrexDB_Groq", 
                  # BGE Large is highly accurate and free (runs locally via HuggingFace)
                  embedding_model: str = "BAAI/bge-large-en-v1.5", 
-                 # Llama 3.1 70B is incredible for complex reasoning and JSON, and blazing fast on Groq
-                 model_name: str = "llama-3.3-70b-versatile",
+                 # gpt-oss-120b is Groq's free-tier reasoning model and supports JSON mode.
+                 # It replaces llama-3.3-70b-versatile, which Groq moved to
+                 # Enterprise-only in August 2026 and now 404s on the free tier.
+                 model_name: str = "openai/gpt-oss-120b",
                  # The Cross-Encoder model used to rerank retrieved candidates
                  reranker_model: str = "BAAI/bge-reranker-base", 
                  # Character size for the larger parent context chunks

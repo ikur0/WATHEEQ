@@ -12,7 +12,27 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 from dotenv import load_dotenv
 import os
 
-load_dotenv()
+from pathlib import Path as _Path
+
+# encoding="utf-8-sig" matters on Windows: PowerShell's Out-File and > both
+# write a UTF-8 BOM by default. Read as plain utf-8 that BOM lands at the start
+# of the first line, so the first variable is parsed as "﻿GROQ_API_KEY"
+# and os.getenv("GROQ_API_KEY") returns None. utf-8-sig strips it if present
+# and is harmless when it is not.
+#
+# override=True makes this file authoritative over whatever the process already
+# inherited. Without it, load_dotenv() silently skips any variable already
+# present in os.environ -- and runserver's autoreloader is exactly that case:
+# the parent process reads .env once at boot, then hands its environment to
+# every reloaded child. A key rotated in .env afterwards never takes effect,
+# because each child inherits the parent's stale value and load_dotenv refuses
+# to replace it. The result is a valid key on disk and a revoked key on the
+# wire, which is the 401 this line exists to prevent.
+load_dotenv(
+    _Path(__file__).resolve().parent.parent / ".env",
+    encoding="utf-8-sig",
+    override=True,
+)
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 from pathlib import Path

@@ -162,8 +162,8 @@ def run_automated_benchmark(vectorstore, bm25, all_docs, cross_encoder, framewor
             run_llm_gen = False
             run_llm_judge = False
         else:
-            print("[*] Initializing Llama-3 (Groq) for generation...")
-            llm = ChatGroq(temperature=0, groq_api_key=groq_key, model_name="llama-3.3-70b-versatile")
+            print("[*] Initializing gpt-oss-120b (Groq) for generation...")
+            llm = ChatGroq(temperature=0, groq_api_key=groq_key, model_name="openai/gpt-oss-120b")
             
             generator_prompt = ChatPromptTemplate.from_template(
                 "You are a strict compliance auditor. Based ONLY on the following regulatory context, evaluate the user's policy query.\n"
